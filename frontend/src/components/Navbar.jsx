@@ -12,8 +12,7 @@ import {
   LogOut, 
   Bell, 
   ChevronDown,
-  CheckCircle2,
-  Sparkles
+  Check
 } from 'lucide-react';
 
 export default function Navbar({ activePage, setActivePage, openAuthModal }) {
@@ -25,7 +24,6 @@ export default function Navbar({ activePage, setActivePage, openAuthModal }) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Fetch active token and notifications
   useEffect(() => {
     async function loadUserData() {
       if (isAuthenticated) {
@@ -64,317 +62,179 @@ export default function Navbar({ activePage, setActivePage, openAuthModal }) {
     } catch (e) {}
   };
 
+  const navItems = [
+    { id: 'home', label: 'Home' },
+    { id: 'services', label: 'Services', icon: Layers },
+    { id: 'tracking', label: 'Tracker', icon: Clock, badge: activeToken?.token_number },
+    { id: 'operator', label: 'Operator', icon: Tv },
+    { id: 'admin', label: 'Admin', icon: SlidersHorizontal },
+    { id: 'display', label: 'TV Board', icon: Tv }
+  ];
+
   return (
     <header style={{
       position: 'sticky',
       top: 0,
       zIndex: 1000,
-      background: 'rgba(7, 11, 20, 0.85)',
-      backdropFilter: 'blur(16px)',
+      background: '#080a0f',
       borderBottom: '1px solid var(--border-subtle)'
     }}>
       <div className="container" style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        height: '70px'
+        height: '60px'
       }}>
         {/* Brand */}
         <div 
           onClick={() => setActivePage('home')}
-          style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
+          style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
         >
           <div style={{
-            width: '38px',
-            height: '38px',
-            borderRadius: '10px',
-            background: 'var(--grad-primary)',
+            width: '28px',
+            height: '28px',
+            borderRadius: '6px',
+            background: '#ffffff',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 0 20px rgba(59, 130, 246, 0.45)'
+            color: '#080a0f'
           }}>
-            <Zap size={22} color="#ffffff" />
+            <Zap size={16} strokeWidth={2.5} fill="#080a0f" />
           </div>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.03em', color: '#ffffff' }}>
-                GHOST<span style={{ color: 'var(--accent-blue)' }}>QUEUE</span>
-              </span>
-              <span style={{
-                background: 'rgba(59, 130, 246, 0.15)',
-                color: '#60a5fa',
-                fontSize: '0.65rem',
-                fontWeight: 700,
-                padding: '2px 6px',
-                borderRadius: '4px',
-                border: '1px solid rgba(59, 130, 246, 0.3)'
-              }}>
-                v2.0
-              </span>
-            </div>
-            <span style={{ fontSize: '0.68rem', color: 'var(--text-dim)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-              Smart Queue Predictor
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '1rem', fontWeight: 700, letterSpacing: '-0.02em', color: '#ffffff' }}>
+              GhostQueue
             </span>
+            <span style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              background: isConnected ? 'var(--status-success)' : 'var(--status-danger)',
+              display: 'inline-block'
+            }} title={isConnected ? 'Realtime Connected' : 'Reconnecting'} />
           </div>
         </div>
 
         {/* Navigation Links */}
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <button
-            onClick={() => setActivePage('home')}
-            style={{
-              background: activePage === 'home' ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-              color: activePage === 'home' ? '#ffffff' : 'var(--text-muted)',
-              border: 'none',
-              padding: '8px 14px',
-              borderRadius: '8px',
-              fontSize: '0.9rem',
-              fontWeight: 500,
-              cursor: 'pointer'
-            }}
-          >
-            Home
-          </button>
-
-          <button
-            onClick={() => setActivePage('services')}
-            style={{
-              background: activePage === 'services' ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-              color: activePage === 'services' ? '#ffffff' : 'var(--text-muted)',
-              border: 'none',
-              padding: '8px 14px',
-              borderRadius: '8px',
-              fontSize: '0.9rem',
-              fontWeight: 500,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-          >
-            <Layers size={16} />
-            Services
-          </button>
-
-          <button
-            onClick={() => setActivePage('tracking')}
-            style={{
-              background: activePage === 'tracking' ? 'rgba(59, 130, 246, 0.15)' : 'transparent',
-              color: activePage === 'tracking' ? '#60a5fa' : 'var(--text-muted)',
-              border: activePage === 'tracking' ? '1px solid rgba(59, 130, 246, 0.3)' : 'none',
-              padding: '8px 14px',
-              borderRadius: '8px',
-              fontSize: '0.9rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-          >
-            <Clock size={16} />
-            Live Tracking
-            {activeToken && (
-              <span style={{
-                background: '#10b981',
-                color: '#ffffff',
-                fontSize: '0.68rem',
-                fontWeight: 700,
-                padding: '2px 7px',
-                borderRadius: '10px',
-                animation: 'pulse-border 2s infinite'
-              }}>
-                {activeToken.token_number}
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => setActivePage('operator')}
-            style={{
-              background: activePage === 'operator' ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-              color: activePage === 'operator' ? '#ffffff' : 'var(--text-muted)',
-              border: 'none',
-              padding: '8px 14px',
-              borderRadius: '8px',
-              fontSize: '0.9rem',
-              fontWeight: 500,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-          >
-            <Tv size={16} />
-            Operator Screen
-          </button>
-
-          <button
-            onClick={() => setActivePage('admin')}
-            style={{
-              background: activePage === 'admin' ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-              color: activePage === 'admin' ? '#ffffff' : 'var(--text-muted)',
-              border: 'none',
-              padding: '8px 14px',
-              borderRadius: '8px',
-              fontSize: '0.9rem',
-              fontWeight: 500,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-          >
-            <SlidersHorizontal size={16} />
-            Admin Dashboard
-          </button>
-
-          <button
-            onClick={() => setActivePage('display')}
-            style={{
-              background: activePage === 'display' ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-              color: activePage === 'display' ? '#ffffff' : 'var(--text-muted)',
-              border: 'none',
-              padding: '8px 14px',
-              borderRadius: '8px',
-              fontSize: '0.9rem',
-              fontWeight: 500,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-          >
-            <Tv size={16} />
-            TV Board
-          </button>
+        <nav style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '2px',
+          background: 'rgba(255, 255, 255, 0.03)',
+          padding: '3px',
+          borderRadius: '8px',
+          border: '1px solid var(--border-subtle)'
+        }}>
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isSelected = activePage === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActivePage(item.id)}
+                style={{
+                  background: isSelected ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                  color: isSelected ? '#ffffff' : 'var(--text-secondary)',
+                  border: 'none',
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  fontSize: '0.84rem',
+                  fontWeight: isSelected ? 600 : 500,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                {Icon && <Icon size={14} style={{ opacity: isSelected ? 1 : 0.7 }} />}
+                <span>{item.label}</span>
+                {item.badge && (
+                  <span style={{
+                    background: 'var(--status-success)',
+                    color: '#ffffff',
+                    fontSize: '0.65rem',
+                    fontWeight: 700,
+                    padding: '1px 5px',
+                    borderRadius: '4px'
+                  }}>
+                    {item.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </nav>
 
         {/* Right Section: Role Switcher & User Profile */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {/* Real-time Status Dot */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            fontSize: '0.75rem',
-            color: isConnected ? '#34d399' : '#f87171',
-            padding: '4px 10px',
-            borderRadius: '12px',
-            background: isConnected ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-            border: isConnected ? '1px solid rgba(16, 185, 129, 0.25)' : '1px solid rgba(239, 68, 68, 0.25)'
-          }}>
-            <span style={{
-              width: '7px',
-              height: '7px',
-              borderRadius: '50%',
-              backgroundColor: isConnected ? '#10b981' : '#ef4444',
-              boxShadow: isConnected ? '0 0 8px #10b981' : 'none'
-            }} />
-            {isConnected ? 'Real-Time Sync' : 'Reconnecting...'}
-          </div>
-
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {/* Quick Demo Role Dropdown */}
           <div style={{ position: 'relative' }}>
             <button
               onClick={() => setShowRoleMenu(!showRoleMenu)}
               style={{
-                background: 'rgba(139, 92, 246, 0.15)',
-                border: '1px solid rgba(139, 92, 246, 0.35)',
-                color: '#c4b5fd',
-                padding: '6px 12px',
-                borderRadius: '8px',
-                fontSize: '0.8rem',
-                fontWeight: 600,
+                background: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid var(--border-subtle)',
+                color: 'var(--text-secondary)',
+                padding: '6px 10px',
+                borderRadius: '6px',
+                fontSize: '0.78rem',
+                fontWeight: 500,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
                 cursor: 'pointer'
               }}
             >
-              <Sparkles size={14} />
-              Role: <span style={{ textTransform: 'capitalize', color: '#ffffff' }}>{user ? user.role : 'Guest'}</span>
-              <ChevronDown size={14} />
+              <span>Role: <strong style={{ color: '#ffffff', textTransform: 'capitalize' }}>{user ? user.role : 'Guest'}</strong></span>
+              <ChevronDown size={12} />
             </button>
 
             {showRoleMenu && (
               <div style={{
                 position: 'absolute',
-                top: '115%',
+                top: '120%',
                 right: 0,
-                width: '210px',
-                background: 'rgba(15, 23, 42, 0.98)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                borderRadius: '10px',
-                padding: '8px',
-                boxShadow: '0 12px 30px rgba(0,0,0,0.6)',
+                width: '180px',
+                background: '#0e121b',
+                border: '1px solid var(--border-medium)',
+                borderRadius: '8px',
+                padding: '4px',
+                boxShadow: '0 10px 24px rgba(0,0,0,0.5)',
                 zIndex: 1001
               }}>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', padding: '4px 8px', fontWeight: 700, textTransform: 'uppercase' }}>
-                  Quick Role Switcher
+                <div style={{ fontSize: '0.68rem', color: 'var(--text-tertiary)', padding: '4px 8px', fontWeight: 600, textTransform: 'uppercase' }}>
+                  Switch Demo Role
                 </div>
-                <button
-                  onClick={() => { switchDemoRole('admin'); setShowRoleMenu(false); }}
-                  style={{
-                    width: '100%',
-                    padding: '8px 10px',
-                    textAlign: 'left',
-                    background: user?.role === 'admin' ? 'rgba(139, 92, 246, 0.2)' : 'transparent',
-                    border: 'none',
-                    borderRadius: '6px',
-                    color: '#ffffff',
-                    fontSize: '0.82rem',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between'
-                  }}
-                >
-                  <span>👑 Administrator</span>
-                  {user?.role === 'admin' && <CheckCircle2 size={14} color="#a78bfa" />}
-                </button>
-                <button
-                  onClick={() => { switchDemoRole('operator'); setShowRoleMenu(false); }}
-                  style={{
-                    width: '100%',
-                    padding: '8px 10px',
-                    textAlign: 'left',
-                    background: user?.role === 'operator' ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
-                    border: 'none',
-                    borderRadius: '6px',
-                    color: '#ffffff',
-                    fontSize: '0.82rem',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between'
-                  }}
-                >
-                  <span>💼 Counter Operator</span>
-                  {user?.role === 'operator' && <CheckCircle2 size={14} color="#60a5fa" />}
-                </button>
-                <button
-                  onClick={() => { switchDemoRole('visitor'); setShowRoleMenu(false); }}
-                  style={{
-                    width: '100%',
-                    padding: '8px 10px',
-                    textAlign: 'left',
-                    background: user?.role === 'visitor' ? 'rgba(16, 185, 129, 0.2)' : 'transparent',
-                    border: 'none',
-                    borderRadius: '6px',
-                    color: '#ffffff',
-                    fontSize: '0.82rem',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between'
-                  }}
-                >
-                  <span>🎟️ Visitor / Student</span>
-                  {user?.role === 'visitor' && <CheckCircle2 size={14} color="#34d399" />}
-                </button>
+                {[
+                  { id: 'admin', label: 'Admin' },
+                  { id: 'operator', label: 'Operator' },
+                  { id: 'visitor', label: 'Visitor' }
+                ].map((r) => (
+                  <button
+                    key={r.id}
+                    onClick={() => { switchDemoRole(r.id); setShowRoleMenu(false); }}
+                    style={{
+                      width: '100%',
+                      padding: '6px 8px',
+                      textAlign: 'left',
+                      background: user?.role === r.id ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                      border: 'none',
+                      borderRadius: '4px',
+                      color: user?.role === r.id ? '#ffffff' : 'var(--text-secondary)',
+                      fontSize: '0.8rem',
+                      fontWeight: user?.role === r.id ? 600 : 400,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between'
+                    }}
+                  >
+                    <span>{r.label}</span>
+                    {user?.role === r.id && <Check size={14} color="#3b82f6" />}
+                  </button>
+                ))}
               </div>
             )}
           </div>
@@ -385,31 +245,31 @@ export default function Navbar({ activePage, setActivePage, openAuthModal }) {
               <button
                 onClick={() => setShowNotifMenu(!showNotifMenu)}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.06)',
+                  background: 'transparent',
                   border: '1px solid var(--border-subtle)',
-                  borderRadius: '8px',
-                  width: '38px',
-                  height: '38px',
+                  borderRadius: '6px',
+                  width: '32px',
+                  height: '32px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: 'var(--text-muted)',
+                  color: 'var(--text-secondary)',
                   cursor: 'pointer',
                   position: 'relative'
                 }}
               >
-                <Bell size={18} />
+                <Bell size={15} />
                 {unreadCount > 0 && (
                   <span style={{
                     position: 'absolute',
-                    top: '-4px',
-                    right: '-4px',
+                    top: '-3px',
+                    right: '-3px',
                     background: '#ef4444',
                     color: '#ffffff',
-                    fontSize: '0.65rem',
+                    fontSize: '0.6rem',
                     fontWeight: 700,
-                    width: '18px',
-                    height: '18px',
+                    width: '15px',
+                    height: '15px',
                     borderRadius: '50%',
                     display: 'flex',
                     alignItems: 'center',
@@ -423,40 +283,39 @@ export default function Navbar({ activePage, setActivePage, openAuthModal }) {
               {showNotifMenu && (
                 <div style={{
                   position: 'absolute',
-                  top: '115%',
+                  top: '120%',
                   right: 0,
-                  width: '320px',
-                  background: 'rgba(15, 23, 42, 0.98)',
-                  backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                  borderRadius: '12px',
-                  padding: '12px',
-                  boxShadow: '0 12px 30px rgba(0,0,0,0.6)',
+                  width: '280px',
+                  background: '#0e121b',
+                  border: '1px solid var(--border-medium)',
+                  borderRadius: '8px',
+                  padding: '8px',
+                  boxShadow: '0 12px 28px rgba(0,0,0,0.5)',
                   zIndex: 1001
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', paddingBottom: '6px', borderBottom: '1px solid var(--border-subtle)' }}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#ffffff' }}>Notifications</span>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px', paddingBottom: '4px', borderBottom: '1px solid var(--border-subtle)' }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#ffffff' }}>Notifications</span>
                     {unreadCount > 0 && (
                       <button
                         onClick={handleMarkAllRead}
-                        style={{ background: 'transparent', border: 'none', color: 'var(--accent-blue)', fontSize: '0.75rem', cursor: 'pointer' }}
+                        style={{ background: 'transparent', border: 'none', color: '#60a5fa', fontSize: '0.72rem', cursor: 'pointer' }}
                       >
                         Mark all read
                       </button>
                     )}
                   </div>
-                  <div style={{ maxHeight: '250px', overflowY: 'auto' }}>
+                  <div style={{ maxHeight: '220px', overflowY: 'auto' }}>
                     {notifications.length === 0 ? (
-                      <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', textAlign: 'center', padding: '16px 0' }}>No notifications yet</p>
+                      <p style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', textAlign: 'center', padding: '12px 0' }}>No notifications</p>
                     ) : (
                       notifications.map(n => (
                         <div key={n.notification_id} style={{
-                          padding: '8px 10px',
-                          borderRadius: '6px',
-                          background: n.is_read ? 'transparent' : 'rgba(59, 130, 246, 0.1)',
-                          marginBottom: '6px',
-                          fontSize: '0.8rem',
-                          color: n.is_read ? 'var(--text-muted)' : '#ffffff'
+                          padding: '6px 8px',
+                          borderRadius: '4px',
+                          background: n.is_read ? 'transparent' : 'rgba(37, 99, 235, 0.08)',
+                          marginBottom: '4px',
+                          fontSize: '0.78rem',
+                          color: n.is_read ? 'var(--text-secondary)' : '#ffffff'
                         }}>
                           {n.message}
                         </div>
@@ -471,41 +330,36 @@ export default function Navbar({ activePage, setActivePage, openAuthModal }) {
           {/* User Profile or Sign In */}
           {isAuthenticated ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#ffffff', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {user.name}
-                </div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>
-                  {user.is_guest ? 'Guest Visitor' : user.email || user.role}
-                </div>
-              </div>
+              <span style={{ fontSize: '0.82rem', color: '#ffffff', fontWeight: 500, maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {user.name}
+              </span>
               <button
                 onClick={logout}
                 title="Sign Out"
                 style={{
-                  background: 'rgba(255, 255, 255, 0.06)',
+                  background: 'transparent',
                   border: '1px solid var(--border-subtle)',
-                  borderRadius: '8px',
-                  width: '38px',
-                  height: '38px',
+                  borderRadius: '6px',
+                  width: '32px',
+                  height: '32px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: 'var(--text-muted)',
+                  color: 'var(--text-tertiary)',
                   cursor: 'pointer'
                 }}
               >
-                <LogOut size={16} />
+                <LogOut size={14} />
               </button>
             </div>
           ) : (
             <button
               onClick={() => openAuthModal('login')}
-              className="btn-primary"
-              style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+              className="btn-secondary"
+              style={{ padding: '6px 12px', fontSize: '0.8rem' }}
             >
-              <User size={15} />
-              Sign In
+              <User size={14} />
+              <span>Sign In</span>
             </button>
           )}
         </div>

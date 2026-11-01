@@ -7,7 +7,6 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
-  AlertTriangle,
   ArrowRight,
   Copy,
   Check,
@@ -32,14 +31,12 @@ export default function TrackingPage({ activeTokenId, setActiveTokenId, openJoin
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('Change of plans');
 
-  // Load user's active tokens if authenticated
   const loadMyTokens = async () => {
     if (isAuthenticated) {
       try {
         const res = await api.getMyTokens();
         if (res.success && res.tokens.length > 0) {
           setMyTokens(res.tokens);
-          // If no activeTokenId set, default to first active token
           if (!activeTokenId) {
             const firstActive = res.tokens.find(t => ['waiting', 'called', 'in_service'].includes(t.status)) || res.tokens[0];
             setActiveTokenId(firstActive.token_id);
@@ -55,7 +52,6 @@ export default function TrackingPage({ activeTokenId, setActiveTokenId, openJoin
     loadMyTokens();
   }, [isAuthenticated]);
 
-  // Load detailed token data whenever activeTokenId changes
   const fetchTokenDetails = async (id) => {
     if (!id) {
       setLoading(false);
@@ -85,19 +81,13 @@ export default function TrackingPage({ activeTokenId, setActiveTokenId, openJoin
     }
   }, [activeTokenId]);
 
-  // Real-time socket event subscriptions
   useEffect(() => {
     if (!socket || !activeTokenId) return;
 
-    // Join room for this token
     socket.emit('join:token', activeTokenId);
 
-    const handleTokenCalled = (data) => {
-      confetti({
-        particleCount: 120,
-        spread: 80,
-        origin: { y: 0.6 }
-      });
+    const handleTokenCalled = () => {
+      confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
       fetchTokenDetails(activeTokenId);
       loadMyTokens();
     };
@@ -114,25 +104,16 @@ export default function TrackingPage({ activeTokenId, setActiveTokenId, openJoin
       });
     };
 
-    const handleServiceStarted = () => {
-      fetchTokenDetails(activeTokenId);
-    };
-
+    const handleServiceStarted = () => fetchTokenDetails(activeTokenId);
     const handleServiceCompleted = () => {
-      confetti({
-        particleCount: 150,
-        spread: 100,
-        origin: { y: 0.5 }
-      });
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
       fetchTokenDetails(activeTokenId);
       loadMyTokens();
     };
-
     const handleTokenCancelled = () => {
       fetchTokenDetails(activeTokenId);
       loadMyTokens();
     };
-
     const handleTokenSkipped = () => {
       fetchTokenDetails(activeTokenId);
       loadMyTokens();
@@ -167,7 +148,7 @@ export default function TrackingPage({ activeTokenId, setActiveTokenId, openJoin
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.origin + '?token=' + activeTokenId);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleCancelToken = async () => {
@@ -185,116 +166,70 @@ export default function TrackingPage({ activeTokenId, setActiveTokenId, openJoin
     }
   };
 
-  // Status rendering metadata
-  const getStatusConfig = (status) => {
+  const getStatusBadge = (status) => {
     switch (status) {
       case 'waiting':
-        return {
-          label: 'Waiting in Queue',
-          color: '#fbbf24',
-          bg: 'rgba(251, 191, 36, 0.15)',
-          border: 'rgba(251, 191, 36, 0.3)',
-          icon: Clock
-        };
+        return <span className="badge badge-waiting">Waiting in Queue</span>;
       case 'called':
-        return {
-          label: 'Called! Proceed to Desk',
-          color: '#34d399',
-          bg: 'rgba(52, 211, 153, 0.2)',
-          border: 'rgba(52, 211, 153, 0.5)',
-          icon: Bell
-        };
+        return <span className="badge badge-called">Called to Desk</span>;
       case 'in_service':
-        return {
-          label: 'Currently In Service',
-          color: '#60a5fa',
-          bg: 'rgba(96, 165, 250, 0.2)',
-          border: 'rgba(96, 165, 250, 0.4)',
-          icon: Timer
-        };
+        return <span className="badge badge-serving">In Service</span>;
       case 'completed':
-        return {
-          label: 'Service Completed',
-          color: '#10b981',
-          bg: 'rgba(16, 185, 129, 0.15)',
-          border: 'rgba(16, 185, 129, 0.3)',
-          icon: CheckCircle2
-        };
+        return <span className="badge badge-completed">Completed</span>;
       case 'cancelled':
-        return {
-          label: 'Cancelled',
-          color: '#f87171',
-          bg: 'rgba(248, 113, 113, 0.15)',
-          border: 'rgba(248, 113, 113, 0.3)',
-          icon: XCircle
-        };
-      case 'skipped':
-        return {
-          label: 'Skipped / No Show',
-          color: '#f87171',
-          bg: 'rgba(248, 113, 113, 0.15)',
-          border: 'rgba(248, 113, 113, 0.3)',
-          icon: AlertTriangle
-        };
+        return <span className="badge badge-cancelled">Cancelled</span>;
       default:
-        return {
-          label: status,
-          color: '#94a3b8',
-          bg: 'rgba(255, 255, 255, 0.05)',
-          border: 'rgba(255, 255, 255, 0.1)',
-          icon: Clock
-        };
+        return <span className="badge">{status}</span>;
     }
   };
 
   return (
-    <div className="container" style={{ padding: '40px 24px 80px 24px', maxWidth: '880px' }}>
-      {/* Top Bar with Token Selector / Search */}
+    <div className="container" style={{ padding: '36px 24px 80px 24px', maxWidth: '780px' }}>
+      {/* Top Header & Search */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         flexWrap: 'wrap',
         gap: '16px',
-        marginBottom: '28px'
+        marginBottom: '24px'
       }}>
         <div>
-          <span style={{ fontSize: '0.8rem', color: 'var(--accent-blue)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Millisecond Telemetry
-          </span>
-          <h1 style={{ fontSize: '2rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em', marginTop: '2px' }}>
-            Live Queue Tracker
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em' }}>
+            Queue Pass
           </h1>
+          <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)' }}>
+            Real-time status updates and counter call notifications.
+          </p>
         </div>
 
-        {/* Search or Lookup Token Input */}
-        <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '8px', width: '100%', maxWidth: '360px' }}>
+        <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '6px', width: '100%', maxWidth: '300px' }}>
           <input
             type="text"
-            placeholder="Search Token ID or UUID..."
+            placeholder="Find by token ID or UUID..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             className="form-input"
-            style={{ padding: '10px 14px', fontSize: '0.88rem' }}
+            style={{ padding: '7px 10px', fontSize: '0.82rem' }}
           />
-          <button type="submit" className="btn-primary" style={{ padding: '10px 16px', fontSize: '0.88rem' }}>
+          <button type="submit" className="btn-secondary" style={{ padding: '7px 12px', fontSize: '0.82rem' }}>
             Track
           </button>
         </form>
       </div>
 
-      {/* Quick Token Selector Pills (if user has active tokens) */}
+      {/* Quick Token Selector Pills */}
       {myTokens.length > 0 && (
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '10px',
+          gap: '8px',
           overflowX: 'auto',
-          paddingBottom: '16px',
-          marginBottom: '20px'
+          paddingBottom: '12px',
+          marginBottom: '16px'
         }}>
-          <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 600, whiteSpace: 'nowrap' }}>
-            Your Tokens:
+          <span style={{ fontSize: '0.74rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', fontWeight: 600 }}>
+            Active:
           </span>
           {myTokens.map((t) => {
             const isSelected = t.token_id === activeTokenId;
@@ -305,23 +240,21 @@ export default function TrackingPage({ activeTokenId, setActiveTokenId, openJoin
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  padding: '6px 14px',
-                  borderRadius: '999px',
-                  background: isSelected ? 'var(--grad-primary)' : 'rgba(15, 23, 42, 0.7)',
-                  border: isSelected ? '1px solid #60a5fa' : '1px solid rgba(255, 255, 255, 0.08)',
+                  gap: '6px',
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  background: isSelected ? 'var(--accent)' : 'rgba(255, 255, 255, 0.04)',
+                  border: isSelected ? '1px solid var(--accent)' : '1px solid var(--border-subtle)',
                   color: '#ffffff',
-                  fontSize: '0.82rem',
+                  fontSize: '0.78rem',
                   fontWeight: 600,
+                  fontFamily: 'var(--font-mono)',
                   cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                  boxShadow: isSelected ? '0 0 16px rgba(59, 130, 246, 0.35)' : 'none'
+                  whiteSpace: 'nowrap'
                 }}
               >
                 <span>{t.token_number}</span>
-                <span style={{ fontSize: '0.72rem', color: isSelected ? '#ffffff' : 'var(--text-muted)' }}>
-                  ({t.service_code})
-                </span>
+                <span style={{ opacity: 0.7, fontSize: '0.7rem' }}>({t.service_code})</span>
               </button>
             );
           })}
@@ -329,295 +262,195 @@ export default function TrackingPage({ activeTokenId, setActiveTokenId, openJoin
       )}
 
       {loading ? (
-        <div className="glass-panel" style={{ padding: '60px', textAlign: 'center', color: 'var(--text-muted)' }}>
-          <RefreshCw size={32} className="spin" style={{ margin: '0 auto 16px auto', color: 'var(--accent-blue)' }} />
-          <p>Connecting to live telemetry server...</p>
+        <div className="glass-panel" style={{ padding: '48px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+          <RefreshCw size={24} className="spin" style={{ margin: '0 auto 12px auto', color: 'var(--accent)' }} />
+          <p style={{ fontSize: '0.86rem' }}>Fetching token details...</p>
         </div>
       ) : error || !tokenData ? (
-        <div className="glass-panel" style={{ padding: '60px', textAlign: 'center' }}>
-          <AlertCircle size={44} color="#f87171" style={{ margin: '0 auto 16px auto' }} />
-          <h3 style={{ fontSize: '1.25rem', color: '#ffffff', marginBottom: '8px' }}>
+        <div className="glass-panel" style={{ padding: '48px', textAlign: 'center' }}>
+          <AlertCircle size={36} color="var(--text-tertiary)" style={{ margin: '0 auto 12px auto' }} />
+          <h3 style={{ fontSize: '1.1rem', color: '#ffffff', marginBottom: '6px' }}>
             {error || 'No Token Selected'}
           </h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', marginBottom: '24px', maxWidth: '440px', margin: '0 auto 24px auto' }}>
-            Please select a service desk from the catalog to join a live queue and generate your digital telemetry token.
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.86rem', marginBottom: '20px' }}>
+            Select a service desk from the catalog to join a live queue.
           </p>
-          <button onClick={() => openJoinModal()} className="btn-primary" style={{ padding: '12px 24px' }}>
-            <span>Join a Queue Now</span>
-            <ArrowRight size={18} />
+          <button onClick={() => openJoinModal()} className="btn-primary" style={{ padding: '9px 18px', fontSize: '0.86rem' }}>
+            <span>Join a Queue</span>
+            <ArrowRight size={14} />
           </button>
         </div>
       ) : (
         <div>
-          {/* Main Hero Card for the Active Token */}
+          {/* Main Ticket Card */}
           {(() => {
-            const statusConfig = getStatusConfig(tokenData.status);
-            const StatusIcon = statusConfig.icon;
             const isCalled = tokenData.status === 'called';
-            const isInService = tokenData.status === 'in_service';
             const isWaiting = tokenData.status === 'waiting';
 
             return (
               <div
                 className="glass-panel"
                 style={{
-                  padding: '36px',
-                  borderRadius: '24px',
-                  border: isCalled ? '2px solid #34d399' : '1px solid var(--border-subtle)',
-                  background: isCalled 
-                    ? 'radial-gradient(circle at top, rgba(16, 185, 129, 0.12) 0%, rgba(15, 23, 42, 0.95) 70%)'
-                    : 'var(--bg-card)',
-                  boxShadow: isCalled ? '0 0 50px rgba(52, 211, 153, 0.25)' : 'var(--shadow-md)',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  marginBottom: '28px'
+                  padding: '28px',
+                  border: isCalled ? '1px solid var(--status-success)' : '1px solid var(--border-subtle)',
+                  background: isCalled ? 'rgba(16, 185, 129, 0.05)' : 'var(--bg-surface)',
+                  marginBottom: '20px'
                 }}
               >
-                {/* Glowing top line */}
-                <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: '4px',
-                  background: isCalled ? 'linear-gradient(90deg, #10b981, #3b82f6)' : 'var(--grad-primary)'
-                }} />
-
-                {/* Banner alert if CALLED! */}
+                {/* Called alert */}
                 {isCalled && (
                   <div style={{
-                    background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95))',
-                    borderRadius: '14px',
-                    padding: '16px 20px',
-                    color: '#ffffff',
+                    background: 'var(--status-success-bg)',
+                    border: '1px solid var(--status-success-border)',
+                    borderRadius: '8px',
+                    padding: '12px 16px',
+                    color: 'var(--status-success)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    marginBottom: '28px',
-                    boxShadow: '0 8px 25px rgba(16, 185, 129, 0.35)',
-                    animation: 'pulse-border 2s infinite'
+                    marginBottom: '22px'
                   }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                      <Bell size={26} color="#ffffff" style={{ animation: 'float 1s infinite' }} />
-                      <div>
-                        <div style={{ fontSize: '1.1rem', fontWeight: 800 }}>YOUR TURN HAS ARRIVED!</div>
-                        <div style={{ fontSize: '0.88rem', opacity: 0.95 }}>
-                          Please proceed immediately to <strong>{tokenData.counter_name || 'Desk'}</strong>!
-                        </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <Bell size={18} />
+                      <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>
+                        It's your turn! Please proceed to <strong>{tokenData.counter_name || 'Desk'}</strong>.
                       </div>
                     </div>
-                    <span style={{
-                      fontSize: '0.75rem',
-                      fontWeight: 800,
-                      background: 'rgba(255,255,255,0.2)',
-                      padding: '4px 10px',
-                      borderRadius: '8px',
-                      textTransform: 'uppercase'
-                    }}>
-                      Action Required
-                    </span>
                   </div>
                 )}
 
-                {/* Header: Service Name & Status Badge */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{
-                      padding: '4px 10px',
-                      borderRadius: '8px',
-                      background: 'rgba(59, 130, 246, 0.15)',
+                {/* Header: Service & Status */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                  <div>
+                    <span style={{
+                      fontSize: '0.72rem',
+                      fontFamily: 'var(--font-mono)',
+                      fontWeight: 700,
                       color: '#93c5fd',
-                      fontSize: '0.82rem',
-                      fontWeight: 800,
-                      fontFamily: 'var(--font-mono)'
+                      background: 'var(--accent-light)',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      marginRight: '8px'
                     }}>
                       {tokenData.service_code}
-                    </div>
-                    <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#ffffff' }}>
+                    </span>
+                    <span style={{ fontSize: '1.05rem', fontWeight: 700, color: '#ffffff' }}>
                       {tokenData.service_name}
-                    </h2>
+                    </span>
                   </div>
 
-                  <div style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '6px 14px',
-                    borderRadius: '999px',
-                    background: statusConfig.bg,
-                    border: `1px solid ${statusConfig.border}`,
-                    color: statusConfig.color,
-                    fontSize: '0.84rem',
-                    fontWeight: 700
-                  }}>
-                    <StatusIcon size={16} />
-                    <span>{statusConfig.label}</span>
-                  </div>
+                  {getStatusBadge(tokenData.status)}
                 </div>
 
-                {/* Huge Centerpiece Token Number */}
-                <div style={{ textAlign: 'center', padding: '24px 0 32px 0' }}>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
-                    Your Digital Queue Pass
+                {/* Center Token Display */}
+                <div style={{ textAlign: 'center', padding: '16px 0 24px 0' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    Pass Number
                   </div>
                   <div style={{
-                    fontSize: 'clamp(3.5rem, 8vw, 5.2rem)',
-                    fontWeight: 900,
-                    letterSpacing: '-0.03em',
+                    fontSize: 'clamp(3rem, 7vw, 4.2rem)',
+                    fontWeight: 800,
+                    letterSpacing: '-0.02em',
                     fontFamily: 'var(--font-mono)',
                     color: '#ffffff',
-                    textShadow: '0 0 40px rgba(59, 130, 246, 0.35)',
-                    marginTop: '4px'
+                    marginTop: '2px'
                   }}>
                     {tokenData.token_number}
                   </div>
-
                   {tokenData.user_name && (
-                    <div style={{ fontSize: '0.92rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                      Visitor: <strong style={{ color: '#ffffff' }}>{tokenData.user_name}</strong>
+                    <div style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                      Visitor: <span style={{ color: '#ffffff' }}>{tokenData.user_name}</span>
                     </div>
                   )}
                 </div>
 
-                {/* Telemetry Grid (Rank, Ahead, Estimated Wait) */}
+                {/* Telemetry Stats */}
                 <div style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                  gap: '16px',
-                  background: 'rgba(0, 0, 0, 0.4)',
-                  border: '1px solid rgba(255, 255, 255, 0.06)',
-                  borderRadius: '16px',
-                  padding: '20px',
-                  marginBottom: '28px'
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: '8px',
+                  background: 'rgba(255, 255, 255, 0.02)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: '8px',
+                  padding: '14px',
+                  marginBottom: '20px'
                 }}>
-                  {/* Position */}
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.74rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 600 }}>
-                      Queue Rank
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>Rank in Line</div>
+                    <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#ffffff', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
+                      {isWaiting ? `#${tokenData.live_position || 1}` : '—'}
                     </div>
-                    <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#ffffff', marginTop: '4px' }}>
-                      {isWaiting ? `#${tokenData.live_position || 1}` : isCalled ? 'Next!' : isInService ? 'Serving' : '—'}
-                    </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                      {isWaiting ? `${tokenData.people_ahead || 0} person(s) ahead` : 'At the counter'}
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>
+                      {isWaiting ? `${tokenData.people_ahead || 0} ahead` : 'Serving'}
                     </div>
                   </div>
 
-                  {/* Estimated Wait */}
-                  <div style={{ textAlign: 'center', borderLeft: '1px solid rgba(255, 255, 255, 0.08)', borderRight: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                    <div style={{ fontSize: '0.74rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 600 }}>
-                      Predicted Wait Time
+                  <div style={{ textAlign: 'center', borderLeft: '1px solid var(--border-subtle)', borderRight: '1px solid var(--border-subtle)' }}>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>Est. Wait</div>
+                    <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#60a5fa', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
+                      {isWaiting ? `~${tokenData.estimated_wait_minutes ?? 5}m` : '0m'}
                     </div>
-                    <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#60a5fa', marginTop: '4px' }}>
-                      {isWaiting ? `~${tokenData.estimated_wait_minutes ?? 5}m` : isCalled || isInService ? '0m' : '—'}
-                    </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                      AI Model Accuracy 94.2%
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>
+                      Live prediction
                     </div>
                   </div>
 
-                  {/* Desk / Counter */}
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.74rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 600 }}>
-                      Assigned Counter
-                    </div>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 800, color: tokenData.counter_name ? '#34d399' : 'var(--text-muted)', marginTop: '8px' }}>
-                      {tokenData.counter_name || 'Pending Call'}
-                    </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                      {tokenData.currently_serving ? `Now serving: ${tokenData.currently_serving}` : 'Monitoring queues'}
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>Desk</div>
+                    <div style={{ fontSize: '1rem', fontWeight: 600, color: tokenData.counter_name ? '#34d399' : 'var(--text-secondary)', marginTop: '4px' }}>
+                      {tokenData.counter_name || 'Standby'}
                     </div>
                   </div>
                 </div>
 
-                {/* Live Progress Bar for Waiting Status */}
+                {/* Clean Progress Bar */}
                 {isWaiting && (
-                  <div style={{ marginBottom: '28px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
-                      <span>Queue Progress</span>
-                      <span>
-                        {tokenData.people_ahead === 0 ? 'You are next in line!' : `${tokenData.people_ahead} customer(s) before you`}
-                      </span>
-                    </div>
+                  <div style={{ marginBottom: '20px' }}>
                     <div style={{
                       width: '100%',
-                      height: '8px',
-                      background: 'rgba(255, 255, 255, 0.08)',
-                      borderRadius: '999px',
+                      height: '4px',
+                      background: 'rgba(255, 255, 255, 0.06)',
+                      borderRadius: '2px',
                       overflow: 'hidden'
                     }}>
                       <div style={{
                         height: '100%',
                         width: `${Math.max(10, Math.min(100, 100 - (tokenData.people_ahead * 20)))}%`,
-                        background: 'var(--grad-primary)',
-                        borderRadius: '999px',
-                        transition: 'width 0.6s cubic-bezier(0.16, 1, 0.3, 1)'
+                        background: 'var(--accent)',
+                        borderRadius: '2px'
                       }} />
                     </div>
                   </div>
                 )}
 
-                {/* Action Buttons */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '20px' }}>
-                  <div style={{ display: 'flex', gap: '10px' }}>
+                {/* Actions */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border-subtle)', paddingTop: '16px' }}>
+                  <div style={{ display: 'flex', gap: '8px' }}>
                     <button
                       onClick={handleCopyLink}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '8px 14px',
-                        borderRadius: '8px',
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        color: '#ffffff',
-                        fontSize: '0.84rem',
-                        cursor: 'pointer'
-                      }}
+                      className="btn-secondary"
+                      style={{ padding: '6px 12px', fontSize: '0.8rem' }}
                     >
-                      {copied ? <Check size={16} color="#34d399" /> : <Copy size={16} />}
-                      <span>{copied ? 'Link Copied!' : 'Copy Pass'}</span>
+                      {copied ? <Check size={14} color="var(--status-success)" /> : <Copy size={14} />}
+                      <span>{copied ? 'Copied' : 'Share Link'}</span>
                     </button>
 
                     <button
                       onClick={() => fetchTokenDetails(activeTokenId)}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '8px 14px',
-                        borderRadius: '8px',
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        color: 'var(--text-muted)',
-                        fontSize: '0.84rem',
-                        cursor: 'pointer'
-                      }}
+                      className="btn-secondary"
+                      style={{ padding: '6px 10px', fontSize: '0.8rem' }}
                     >
                       <RefreshCw size={14} />
-                      <span>Refresh</span>
                     </button>
                   </div>
 
                   {['waiting', 'called'].includes(tokenData.status) && (
                     <button
                       onClick={() => setCancelModalOpen(true)}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '8px 14px',
-                        borderRadius: '8px',
-                        background: 'rgba(239, 68, 68, 0.1)',
-                        border: '1px solid rgba(239, 68, 68, 0.25)',
-                        color: '#fca5a5',
-                        fontSize: '0.84rem',
-                        fontWeight: 600,
-                        cursor: 'pointer'
-                      }}
+                      className="btn-danger"
                     >
-                      <XCircle size={16} />
-                      <span>Cancel Token</span>
+                      <XCircle size={14} />
+                      <span>Leave Queue</span>
                     </button>
                   )}
                 </div>
@@ -625,75 +458,43 @@ export default function TrackingPage({ activeTokenId, setActiveTokenId, openJoin
             );
           })()}
 
-          {/* Timeline Audit Events Card */}
-          <div className="glass-panel" style={{ padding: '28px', borderRadius: '20px' }}>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#ffffff', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Layers size={18} color="var(--accent-blue)" />
-              <span>Token Activity Timeline</span>
+          {/* Timeline Audit Events */}
+          <div className="glass-panel" style={{ padding: '22px' }}>
+            <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#ffffff', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Layers size={15} color="var(--text-secondary)" />
+              <span>Event Timeline</span>
             </h3>
 
             {tokenData.timeline && tokenData.timeline.length > 0 ? (
-              <div style={{ position: 'relative', paddingLeft: '24px' }}>
-                {/* Timeline vertical bar */}
-                <div style={{
-                  position: 'absolute',
-                  left: '7px',
-                  top: '6px',
-                  bottom: '6px',
-                  width: '2px',
-                  background: 'rgba(255, 255, 255, 0.1)'
-                }} />
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  {tokenData.timeline.map((evt, idx) => (
-                    <div key={idx} style={{ position: 'relative' }}>
-                      {/* Timeline dot */}
-                      <div style={{
-                        position: 'absolute',
-                        left: '-24px',
-                        top: '4px',
-                        width: '14px',
-                        height: '14px',
-                        borderRadius: '50%',
-                        background: 'var(--accent-blue)',
-                        border: '3px solid #0f172a',
-                        boxShadow: '0 0 8px rgba(59, 130, 246, 0.5)'
-                      }} />
-
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#ffffff', textTransform: 'capitalize' }}>
-                            {evt.event_type.replace(/_/g, ' ')}
-                          </span>
-                          <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)', fontFamily: 'var(--font-mono)' }}>
-                            {new Date(evt.timestamp).toLocaleTimeString()}
-                          </span>
-                        </div>
-                        {evt.counter_name && (
-                          <div style={{ fontSize: '0.82rem', color: '#60a5fa', marginTop: '2px' }}>
-                            Counter: {evt.counter_name}
-                          </div>
-                        )}
-                        {evt.event_notes && (
-                          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                            {evt.event_notes}
-                          </div>
-                        )}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {tokenData.timeline.map((evt, idx) => (
+                  <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', fontSize: '0.82rem' }}>
+                    <div>
+                      <div style={{ fontWeight: 600, color: '#ffffff', textTransform: 'capitalize' }}>
+                        {evt.event_type.replace(/_/g, ' ')}
                       </div>
+                      {evt.counter_name && (
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.78rem' }}>
+                          At {evt.counter_name}
+                        </div>
+                      )}
                     </div>
-                  ))}
-                </div>
+                    <span style={{ color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>
+                      {new Date(evt.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                ))}
               </div>
             ) : (
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>
-                Token created at {new Date(tokenData.created_at).toLocaleTimeString()}. Awaiting desk assignment.
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>
+                Joined queue at {new Date(tokenData.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.
               </p>
             )}
           </div>
         </div>
       )}
 
-      {/* Cancel Confirmation Modal */}
+      {/* Cancel Modal */}
       {cancelModalOpen && (
         <div style={{
           position: 'fixed',
@@ -701,8 +502,7 @@ export default function TrackingPage({ activeTokenId, setActiveTokenId, openJoin
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'rgba(3, 7, 18, 0.85)',
-          backdropFilter: 'blur(8px)',
+          background: 'rgba(0,0,0,0.7)',
           zIndex: 3000,
           display: 'flex',
           alignItems: 'center',
@@ -710,67 +510,47 @@ export default function TrackingPage({ activeTokenId, setActiveTokenId, openJoin
           padding: '20px'
         }}>
           <div className="glass-panel" style={{
-            maxWidth: '440px',
+            maxWidth: '380px',
             width: '100%',
-            padding: '28px',
-            borderRadius: '16px',
-            background: '#0f172a',
-            border: '1px solid rgba(239, 68, 68, 0.3)'
+            padding: '22px',
+            background: '#0e121b',
+            border: '1px solid var(--border-medium)'
           }}>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#ffffff', marginBottom: '8px' }}>
-              Cancel Queue Token?
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#ffffff', marginBottom: '6px' }}>
+              Surrender Spot?
             </h3>
-            <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '18px' }}>
-              Are you sure you want to surrender your spot for <strong>{tokenData?.token_number}</strong>? This action cannot be undone.
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+              Cancel token <strong>{tokenData?.token_number}</strong>?
             </p>
 
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-dim)', marginBottom: '6px' }}>
-                Reason for cancellation:
-              </label>
+            <div style={{ marginBottom: '16px' }}>
               <select
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
                 className="form-input"
-                style={{ width: '100%', background: '#1e293b', color: '#ffffff' }}
+                style={{ fontSize: '0.82rem' }}
               >
                 <option value="Change of plans">Change of plans</option>
                 <option value="Estimated wait too long">Estimated wait too long</option>
                 <option value="Joined wrong department">Joined wrong department</option>
-                <option value="Issue resolved elsewhere">Issue resolved elsewhere</option>
               </select>
             </div>
 
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
               <button
                 onClick={() => setCancelModalOpen(false)}
-                style={{
-                  flex: 1,
-                  padding: '10px',
-                  borderRadius: '8px',
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  border: 'none',
-                  color: 'var(--text-muted)',
-                  cursor: 'pointer'
-                }}
+                className="btn-secondary"
+                style={{ flex: 1, padding: '8px' }}
               >
-                Keep Spot
+                Keep
               </button>
               <button
                 onClick={handleCancelToken}
                 disabled={cancelling}
-                style={{
-                  flex: 1,
-                  padding: '10px',
-                  borderRadius: '8px',
-                  background: '#ef4444',
-                  border: 'none',
-                  color: '#ffffff',
-                  fontWeight: 700,
-                  cursor: 'pointer'
-                }}
+                className="btn-danger"
+                style={{ flex: 1, padding: '8px' }}
               >
-                {cancelling ? 'Cancelling...' : 'Confirm Cancel'}
+                {cancelling ? 'Cancelling...' : 'Confirm'}
               </button>
             </div>
           </div>

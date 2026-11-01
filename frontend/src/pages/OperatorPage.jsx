@@ -11,9 +11,7 @@ import {
   Power,
   Clock,
   AlertCircle,
-  UserCheck,
-  Sparkles,
-  ShieldAlert
+  UserCheck
 } from 'lucide-react';
 
 export default function OperatorPage() {
@@ -31,13 +29,11 @@ export default function OperatorPage() {
   const [skipReason, setSkipReason] = useState('Customer did not appear');
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
-  // Load all counters
   const loadCounters = async () => {
     try {
       const res = await api.getCounters();
       if (res.success && res.counters.length > 0) {
         setCounters(res.counters);
-        // Default to first counter or the one assigned to this operator
         if (!selectedCounterId) {
           const assigned = res.counters.find(c => c.operator_id === user?.user_id) || res.counters[0];
           setSelectedCounterId(assigned.counter_id);
@@ -52,7 +48,6 @@ export default function OperatorPage() {
     loadCounters();
   }, [user]);
 
-  // Load state of selected counter
   const loadCounterState = async (counterId) => {
     if (!counterId) return;
     try {
@@ -68,7 +63,6 @@ export default function OperatorPage() {
     }
   };
 
-  // Load waiting queue for current service
   const loadServiceQueue = async (serviceId) => {
     try {
       const res = await api.getServiceQueue(serviceId);
@@ -86,7 +80,6 @@ export default function OperatorPage() {
     }
   }, [selectedCounterId]);
 
-  // Live timer for active in_service customer
   useEffect(() => {
     let interval = null;
     const currentToken = counterState?.token;
@@ -104,20 +97,13 @@ export default function OperatorPage() {
     };
   }, [counterState?.token]);
 
-  // Real-time socket subscriptions for counter & service
   useEffect(() => {
     if (!socket || !selectedCounterId) return;
 
     socket.emit('join:counter', selectedCounterId);
 
-    const handleTokenChanged = () => {
-      loadCounterState(selectedCounterId);
-    };
-
-    const handleStatusChanged = () => {
-      loadCounterState(selectedCounterId);
-    };
-
+    const handleTokenChanged = () => loadCounterState(selectedCounterId);
+    const handleStatusChanged = () => loadCounterState(selectedCounterId);
     const handleQueueUpdated = () => {
       if (counterState?.counter?.service_id) {
         loadServiceQueue(counterState.counter.service_id);
@@ -135,7 +121,6 @@ export default function OperatorPage() {
     };
   }, [socket, selectedCounterId, counterState?.counter?.service_id]);
 
-  // Operator Actions
   const handleCallNext = async () => {
     setError('');
     setActionLoading(true);
@@ -222,327 +207,236 @@ export default function OperatorPage() {
 
   return (
     <div className="container" style={{ padding: '36px 24px 80px 24px' }}>
-      {/* Role Notice & Demo Switcher if user is not Operator/Admin */}
+      {/* Role Reminder if visitor */}
       {role === 'visitor' && (
         <div style={{
-          background: 'rgba(245, 158, 11, 0.12)',
-          border: '1px solid rgba(245, 158, 11, 0.3)',
-          borderRadius: '14px',
-          padding: '16px 20px',
-          marginBottom: '28px',
+          background: 'rgba(255, 255, 255, 0.03)',
+          border: '1px solid var(--border-medium)',
+          borderRadius: '8px',
+          padding: '12px 16px',
+          marginBottom: '24px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: '14px'
+          gap: '12px'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <ShieldAlert size={22} color="#fbbf24" />
-            <div>
-              <div style={{ fontWeight: 700, color: '#fef3c7' }}>Visitor Mode Detected</div>
-              <div style={{ fontSize: '0.85rem', color: '#fde68a' }}>
-                You are viewing the Operator Station. Switch to the demo Operator or Admin account to issue commands.
-              </div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button
-              onClick={() => switchDemoRole('operator')}
-              className="btn-primary"
-              style={{ padding: '8px 16px', fontSize: '0.84rem' }}
-            >
-              Switch to Operator
-            </button>
-            <button
-              onClick={() => switchDemoRole('admin')}
-              style={{
-                background: 'rgba(255,255,255,0.08)',
-                border: '1px solid rgba(255,255,255,0.15)',
-                color: '#ffffff',
-                padding: '8px 16px',
-                borderRadius: '8px',
-                fontSize: '0.84rem',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-            >
-              Switch to Admin
-            </button>
-          </div>
+          <span style={{ fontSize: '0.84rem', color: 'var(--text-secondary)' }}>
+            Viewing as Visitor. Switch to Operator demo account to issue desk commands:
+          </span>
+          <button
+            onClick={() => switchDemoRole('operator')}
+            className="btn-primary"
+            style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+          >
+            Switch to Operator
+          </button>
         </div>
       )}
 
-      {/* Header & Counter Selector */}
+      {/* Header & Desk Switcher */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         flexWrap: 'wrap',
-        gap: '20px',
-        marginBottom: '32px'
+        gap: '16px',
+        marginBottom: '24px'
       }}>
         <div>
-          <span style={{ fontSize: '0.8rem', color: 'var(--accent-blue)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Staff Telemetry Console
-          </span>
-          <h1 style={{ fontSize: '2.2rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em', marginTop: '2px' }}>
-            Operator Station
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em' }}>
+            Operator Terminal
           </h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem' }}>
-            Manage queue flow, call visitors, and record service duration in real-time.
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.84rem' }}>
+            Desk queue control and customer service flow.
           </p>
         </div>
 
-        {/* Counter Selection Dropdown */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 600 }}>Operating Desk</div>
-            <select
-              value={selectedCounterId}
-              onChange={(e) => setSelectedCounterId(e.target.value)}
-              className="form-input"
-              style={{
-                padding: '10px 16px',
-                fontWeight: 700,
-                fontSize: '0.92rem',
-                background: '#0f172a',
-                color: '#ffffff',
-                cursor: 'pointer'
-              }}
-            >
-              {counters.map((c) => (
-                <option key={c.counter_id} value={c.counter_id}>
-                  {c.counter_name} ({c.service_name || 'Counter ' + c.counter_number})
-                </option>
-              ))}
-            </select>
-          </div>
+        {/* Counter Selection */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <select
+            value={selectedCounterId}
+            onChange={(e) => setSelectedCounterId(e.target.value)}
+            className="form-input"
+            style={{
+              padding: '7px 12px',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              background: '#0e121b',
+              cursor: 'pointer'
+            }}
+          >
+            {counters.map((c) => (
+              <option key={c.counter_id} value={c.counter_id}>
+                {c.counter_name}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
       {error && (
         <div style={{
-          background: 'rgba(239, 68, 68, 0.15)',
-          border: '1px solid rgba(239, 68, 68, 0.3)',
-          borderRadius: '12px',
-          padding: '12px 18px',
-          color: '#fca5a5',
-          fontSize: '0.88rem',
-          marginBottom: '24px',
+          background: 'var(--status-danger-bg)',
+          border: '1px solid var(--status-danger-border)',
+          borderRadius: '8px',
+          padding: '10px 14px',
+          color: '#f87171',
+          fontSize: '0.84rem',
+          marginBottom: '20px',
           display: 'flex',
           alignItems: 'center',
-          gap: '10px'
+          gap: '8px'
         }}>
-          <AlertCircle size={18} />
+          <AlertCircle size={15} />
           <span>{error}</span>
         </div>
       )}
 
-      {/* Main Operator Layout Grid */}
+      {/* Layout Grid */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
-        gap: '24px',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+        gap: '20px',
         alignItems: 'start'
       }}>
-        {/* Left Column: Counter Controls & Current Customer Card */}
+        {/* Left Column: Counter Controls & Active Customer */}
         <div>
-          {/* Counter Status Toolbar */}
-          <div className="glass-panel" style={{ padding: '20px 24px', marginBottom: '24px', borderRadius: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-              <div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase' }}>Counter Status</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-                  <span style={{
-                    width: '10px',
-                    height: '10px',
-                    borderRadius: '50%',
-                    background: currentCounter?.status === 'active' ? '#10b981' : currentCounter?.status === 'paused' ? '#fbbf24' : '#ef4444'
-                  }} />
-                  <span style={{ fontSize: '1.05rem', fontWeight: 800, color: '#ffffff', textTransform: 'capitalize' }}>
-                    {currentCounter?.status || 'Active'}
-                  </span>
-                </div>
+          {/* Status Bar */}
+          <div className="glass-panel" style={{ padding: '16px 20px', marginBottom: '18px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  background: currentCounter?.status === 'active' ? 'var(--status-success)' : currentCounter?.status === 'paused' ? 'var(--status-warning)' : 'var(--status-danger)'
+                }} />
+                <span style={{ fontSize: '0.88rem', fontWeight: 600, color: '#ffffff', textTransform: 'capitalize' }}>
+                  {currentCounter?.status || 'Active'}
+                </span>
               </div>
 
-              {/* Status Switcher Buttons */}
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div style={{ display: 'flex', gap: '6px' }}>
                 <button
                   onClick={() => handleStatusChange('active')}
                   style={{
-                    padding: '8px 12px',
-                    borderRadius: '8px',
-                    background: currentCounter?.status === 'active' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.05)',
-                    border: currentCounter?.status === 'active' ? '1px solid #10b981' : '1px solid rgba(255,255,255,0.1)',
-                    color: currentCounter?.status === 'active' ? '#34d399' : 'var(--text-muted)',
-                    fontSize: '0.8rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px'
+                    padding: '5px 10px',
+                    borderRadius: '5px',
+                    background: currentCounter?.status === 'active' ? 'var(--status-success-bg)' : 'transparent',
+                    border: '1px solid var(--border-subtle)',
+                    color: currentCounter?.status === 'active' ? 'var(--status-success)' : 'var(--text-secondary)',
+                    fontSize: '0.78rem',
+                    cursor: 'pointer'
                   }}
                 >
-                  <Play size={14} /> Open
+                  Open
                 </button>
-
                 <button
                   onClick={() => handleStatusChange('paused')}
                   style={{
-                    padding: '8px 12px',
-                    borderRadius: '8px',
-                    background: currentCounter?.status === 'paused' ? 'rgba(251, 191, 36, 0.2)' : 'rgba(255,255,255,0.05)',
-                    border: currentCounter?.status === 'paused' ? '1px solid #fbbf24' : '1px solid rgba(255,255,255,0.1)',
-                    color: currentCounter?.status === 'paused' ? '#fbbf24' : 'var(--text-muted)',
-                    fontSize: '0.8rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px'
+                    padding: '5px 10px',
+                    borderRadius: '5px',
+                    background: currentCounter?.status === 'paused' ? 'var(--status-warning-bg)' : 'transparent',
+                    border: '1px solid var(--border-subtle)',
+                    color: currentCounter?.status === 'paused' ? 'var(--status-warning)' : 'var(--text-secondary)',
+                    fontSize: '0.78rem',
+                    cursor: 'pointer'
                   }}
                 >
-                  <Pause size={14} /> Break
+                  Break
                 </button>
-
                 <button
                   onClick={() => handleStatusChange('closed')}
                   style={{
-                    padding: '8px 12px',
-                    borderRadius: '8px',
-                    background: currentCounter?.status === 'closed' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255,255,255,0.05)',
-                    border: currentCounter?.status === 'closed' ? '1px solid #ef4444' : '1px solid rgba(255,255,255,0.1)',
-                    color: currentCounter?.status === 'closed' ? '#f87171' : 'var(--text-muted)',
-                    fontSize: '0.8rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px'
+                    padding: '5px 10px',
+                    borderRadius: '5px',
+                    background: currentCounter?.status === 'closed' ? 'var(--status-danger-bg)' : 'transparent',
+                    border: '1px solid var(--border-subtle)',
+                    color: currentCounter?.status === 'closed' ? '#f87171' : 'var(--text-secondary)',
+                    fontSize: '0.78rem',
+                    cursor: 'pointer'
                   }}
                 >
-                  <Power size={14} /> Close
+                  Close
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Active Serving Customer Card */}
-          <div
-            className="glass-panel"
-            style={{
-              padding: '32px',
-              borderRadius: '20px',
-              border: activeToken ? '1px solid rgba(59, 130, 246, 0.4)' : '1px dashed var(--border-subtle)',
-              background: activeToken ? 'rgba(15, 23, 42, 0.95)' : 'rgba(15, 23, 42, 0.5)',
-              position: 'relative'
-            }}
-          >
+          {/* Active Customer Card */}
+          <div className="glass-panel" style={{ padding: '24px' }}>
             {activeToken ? (
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                  <div style={{
-                    padding: '4px 10px',
-                    borderRadius: '8px',
-                    background: activeToken.status === 'in_service' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(251, 191, 36, 0.15)',
-                    color: activeToken.status === 'in_service' ? '#34d399' : '#fbbf24',
-                    fontSize: '0.82rem',
-                    fontWeight: 800,
-                    textTransform: 'uppercase'
-                  }}>
-                    {activeToken.status === 'in_service' ? '● In Service' : '● Called to Desk'}
-                  </div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                  <span className={`badge ${activeToken.status === 'in_service' ? 'badge-serving' : 'badge-called'}`}>
+                    {activeToken.status === 'in_service' ? 'Serving Customer' : 'Customer Called'}
+                  </span>
 
                   {activeToken.status === 'in_service' && (
                     <div style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '6px',
-                      background: 'rgba(59, 130, 246, 0.15)',
-                      padding: '4px 12px',
-                      borderRadius: '8px',
+                      gap: '5px',
                       fontFamily: 'var(--font-mono)',
-                      color: '#60a5fa',
-                      fontWeight: 700
+                      fontSize: '0.82rem',
+                      color: 'var(--text-secondary)'
                     }}>
-                      <Clock size={16} />
+                      <Clock size={14} />
                       <span>{formatTimer(elapsedSeconds)}</span>
                     </div>
                   )}
                 </div>
 
-                {/* Token Number Display */}
-                <div style={{ textAlign: 'center', padding: '16px 0 24px 0' }}>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)', textTransform: 'uppercase' }}>Active Customer</div>
+                <div style={{ textAlign: 'center', padding: '12px 0 18px 0' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>Token Number</div>
                   <div style={{
-                    fontSize: '3.6rem',
-                    fontWeight: 900,
+                    fontSize: '3rem',
+                    fontWeight: 800,
                     color: '#ffffff',
                     fontFamily: 'var(--font-mono)',
-                    letterSpacing: '-0.02em',
-                    textShadow: '0 0 30px rgba(59, 130, 246, 0.3)'
+                    letterSpacing: '-0.02em'
                   }}>
                     {activeToken.token_number}
                   </div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#e2e8f0', marginTop: '4px' }}>
-                    {activeToken.user_name || activeToken.guest_name || 'Walk-in Guest'}
+                  <div style={{ fontSize: '0.92rem', fontWeight: 600, color: '#ffffff', marginTop: '2px' }}>
+                    {activeToken.user_name || activeToken.guest_name || 'Guest'}
                   </div>
-                  {activeToken.user_phone && (
-                    <div style={{ fontSize: '0.84rem', color: 'var(--text-muted)' }}>
-                      Phone: {activeToken.user_phone}
-                    </div>
-                  )}
                 </div>
 
-                {/* Completion Notes Input */}
                 {activeToken.status === 'in_service' && (
-                  <div style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-dim)', marginBottom: '6px' }}>
-                      Service Notes / Remarks (Optional)
-                    </label>
+                  <div style={{ marginBottom: '16px' }}>
                     <textarea
                       rows={2}
-                      placeholder="e.g. Verified enrollment documents, issued clearance..."
+                      placeholder="Service notes (optional)..."
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       className="form-input"
-                      style={{ width: '100%', resize: 'none', fontSize: '0.85rem' }}
+                      style={{ fontSize: '0.82rem', resize: 'none' }}
                     />
                   </div>
                 )}
 
-                {/* Action Controls */}
-                <div style={{ display: 'grid', gridTemplateColumns: activeToken.status === 'called' ? '2fr 1fr' : '1fr', gap: '12px' }}>
+                <div style={{ display: 'flex', gap: '8px' }}>
                   {activeToken.status === 'called' ? (
                     <>
                       <button
                         onClick={handleStartService}
                         disabled={actionLoading}
                         className="btn-primary"
-                        style={{ height: '48px', fontSize: '1rem', fontWeight: 700 }}
+                        style={{ flex: 2, padding: '10px' }}
                       >
-                        <Play size={18} />
+                        <Play size={15} />
                         <span>Start Service</span>
                       </button>
 
                       <button
                         onClick={() => setSkipModalOpen(true)}
                         disabled={actionLoading}
-                        style={{
-                          height: '48px',
-                          borderRadius: '10px',
-                          background: 'rgba(239, 68, 68, 0.15)',
-                          border: '1px solid rgba(239, 68, 68, 0.3)',
-                          color: '#fca5a5',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '6px'
-                        }}
+                        className="btn-secondary"
+                        style={{ flex: 1, padding: '10px' }}
                       >
-                        <SkipForward size={16} />
+                        <SkipForward size={14} />
                         <span>Skip</span>
                       </button>
                     </>
@@ -550,66 +444,45 @@ export default function OperatorPage() {
                     <button
                       onClick={handleCompleteService}
                       disabled={actionLoading}
-                      style={{
-                        height: '48px',
-                        borderRadius: '10px',
-                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                        border: 'none',
-                        color: '#ffffff',
-                        fontSize: '1rem',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px',
-                        boxShadow: '0 8px 25px rgba(16, 185, 129, 0.35)'
-                      }}
+                      className="btn-primary"
+                      style={{ width: '100%', padding: '10px', background: 'var(--status-success)' }}
                     >
-                      <CheckCircle2 size={20} />
-                      <span>{actionLoading ? 'Saving...' : 'Complete Service & Close'}</span>
+                      <CheckCircle2 size={16} />
+                      <span>{actionLoading ? 'Saving...' : 'Finish Service'}</span>
                     </button>
                   )}
                 </div>
               </div>
             ) : (
-              /* No Active Customer: Prominent Call Next button */
-              <div style={{ textAlign: 'center', padding: '30px 0' }}>
+              <div style={{ textAlign: 'center', padding: '24px 0' }}>
                 <div style={{
-                  width: '64px',
-                  height: '64px',
-                  borderRadius: '20px',
-                  background: 'rgba(59, 130, 246, 0.1)',
-                  border: '1px solid rgba(59, 130, 246, 0.25)',
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '10px',
+                  background: 'rgba(255, 255, 255, 0.04)',
+                  border: '1px solid var(--border-subtle)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  margin: '0 auto 16px auto'
+                  margin: '0 auto 12px auto'
                 }}>
-                  <UserCheck size={32} color="#60a5fa" />
+                  <UserCheck size={20} color="var(--text-secondary)" />
                 </div>
-                <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#ffffff', marginBottom: '6px' }}>
-                  Ready for Next Customer
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#ffffff', marginBottom: '4px' }}>
+                  Window Ready
                 </h3>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '24px', maxWidth: '340px', margin: '0 auto 24px auto' }}>
-                  {waitingQueue.length > 0 
-                    ? `${waitingQueue.length} customer(s) waiting in queue for this desk.`
-                    : 'No customers currently waiting in this department queue.'}
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', marginBottom: '20px' }}>
+                  {waitingQueue.length > 0
+                    ? `${waitingQueue.length} visitor(s) waiting in queue.`
+                    : 'No visitors in queue.'}
                 </p>
 
                 <button
                   onClick={handleCallNext}
                   disabled={actionLoading || waitingQueue.length === 0}
                   className="btn-primary"
-                  style={{
-                    padding: '14px 32px',
-                    fontSize: '1.05rem',
-                    fontWeight: 800,
-                    borderRadius: '12px',
-                    boxShadow: '0 0 30px rgba(59, 130, 246, 0.4)'
-                  }}
+                  style={{ padding: '10px 24px', fontSize: '0.9rem' }}
                 >
-                  <Sparkles size={20} />
                   <span>{actionLoading ? 'Calling...' : 'Call Next Customer'}</span>
                 </button>
               </div>
@@ -617,76 +490,56 @@ export default function OperatorPage() {
           </div>
         </div>
 
-        {/* Right Column: Live Waiting Queue List for this Service */}
-        <div className="glass-panel" style={{ padding: '28px', borderRadius: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Users size={20} color="var(--accent-blue)" />
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#ffffff' }}>
-                Department Queue
+        {/* Right Column: Waiting List */}
+        <div className="glass-panel" style={{ padding: '22px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Users size={16} color="var(--text-secondary)" />
+              <h3 style={{ fontSize: '0.98rem', fontWeight: 700, color: '#ffffff' }}>
+                Waiting in Department
               </h3>
             </div>
-            <span style={{
-              background: 'rgba(59, 130, 246, 0.15)',
-              color: '#93c5fd',
-              fontSize: '0.8rem',
-              fontWeight: 800,
-              padding: '4px 10px',
-              borderRadius: '8px'
-            }}>
-              {waitingQueue.length} Waiting
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
+              {waitingQueue.length} in line
             </span>
           </div>
 
           {waitingQueue.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-dim)' }}>
-              <p>Queue is clear! No pending visitors.</p>
-            </div>
+            <p style={{ color: 'var(--text-tertiary)', fontSize: '0.82rem', textAlign: 'center', padding: '28px 0' }}>
+              No customers waiting.
+            </p>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '480px', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '420px', overflowY: 'auto' }}>
               {waitingQueue.map((item, idx) => (
                 <div
                   key={item.token_id}
                   style={{
-                    background: idx === 0 ? 'rgba(59, 130, 246, 0.1)' : 'rgba(0, 0, 0, 0.3)',
-                    border: idx === 0 ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid rgba(255, 255, 255, 0.04)',
-                    borderRadius: '12px',
-                    padding: '14px 18px',
+                    background: 'rgba(255, 255, 255, 0.02)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: '6px',
+                    padding: '10px 14px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between'
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{
-                      fontSize: '0.85rem',
-                      fontWeight: 800,
-                      color: idx === 0 ? '#60a5fa' : 'var(--text-dim)',
-                      width: '24px'
-                    }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
                       #{idx + 1}
                     </span>
                     <div>
-                      <div style={{
-                        fontSize: '1.1rem',
-                        fontWeight: 800,
-                        color: '#ffffff',
-                        fontFamily: 'var(--font-mono)'
-                      }}>
+                      <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#ffffff', fontFamily: 'var(--font-mono)' }}>
                         {item.token_number}
                       </div>
-                      <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                      <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
                         {item.user_name || item.guest_name || 'Guest'}
                       </div>
                     </div>
                   </div>
 
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '0.78rem', color: '#fbbf24', fontWeight: 600 }}>
-                      ~{item.estimated_wait_minutes ?? 5}m wait
-                    </div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', fontFamily: 'var(--font-mono)' }}>
-                      Joined {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    <div style={{ fontSize: '0.76rem', color: '#60a5fa', fontFamily: 'var(--font-mono)' }}>
+                      ~{item.estimated_wait_minutes ?? 5}m
                     </div>
                   </div>
                 </div>
@@ -704,8 +557,7 @@ export default function OperatorPage() {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'rgba(3, 7, 18, 0.85)',
-          backdropFilter: 'blur(8px)',
+          background: 'rgba(0,0,0,0.7)',
           zIndex: 3000,
           display: 'flex',
           alignItems: 'center',
@@ -713,66 +565,47 @@ export default function OperatorPage() {
           padding: '20px'
         }}>
           <div className="glass-panel" style={{
-            maxWidth: '420px',
+            maxWidth: '360px',
             width: '100%',
-            padding: '28px',
-            borderRadius: '16px',
-            background: '#0f172a',
-            border: '1px solid rgba(239, 68, 68, 0.3)'
+            padding: '20px',
+            background: '#0e121b',
+            border: '1px solid var(--border-medium)'
           }}>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#ffffff', marginBottom: '8px' }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#ffffff', marginBottom: '4px' }}>
               Skip Token {activeToken?.token_number}?
             </h3>
-            <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '18px' }}>
-              Mark this visitor as skipped. Reason will be logged in audit telemetry.
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+              Mark as skipped and log reason in audit history.
             </p>
 
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-dim)', marginBottom: '6px' }}>
-                Reason:
-              </label>
+            <div style={{ marginBottom: '14px' }}>
               <select
                 value={skipReason}
                 onChange={(e) => setSkipReason(e.target.value)}
                 className="form-input"
-                style={{ width: '100%', background: '#1e293b', color: '#ffffff' }}
+                style={{ fontSize: '0.82rem' }}
               >
                 <option value="Customer did not appear">Customer did not appear</option>
                 <option value="Customer asked to be skipped">Customer asked to be skipped</option>
-                <option value="Incomplete paperwork">Incomplete paperwork</option>
+                <option value="Incomplete documents">Incomplete documents</option>
               </select>
             </div>
 
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
               <button
                 onClick={() => setSkipModalOpen(false)}
-                style={{
-                  flex: 1,
-                  padding: '10px',
-                  borderRadius: '8px',
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  border: 'none',
-                  color: 'var(--text-muted)',
-                  cursor: 'pointer'
-                }}
+                className="btn-secondary"
+                style={{ flex: 1, padding: '7px' }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleSkipToken}
                 disabled={actionLoading}
-                style={{
-                  flex: 1,
-                  padding: '10px',
-                  borderRadius: '8px',
-                  background: '#ef4444',
-                  border: 'none',
-                  color: '#ffffff',
-                  fontWeight: 700,
-                  cursor: 'pointer'
-                }}
+                className="btn-danger"
+                style={{ flex: 1, padding: '7px' }}
               >
-                {actionLoading ? 'Skipping...' : 'Confirm Skip'}
+                {actionLoading ? 'Skipping...' : 'Skip'}
               </button>
             </div>
           </div>

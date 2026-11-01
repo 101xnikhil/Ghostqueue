@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { X, Clock, Users, ArrowRight, AlertCircle, Sparkles } from 'lucide-react';
+import { X, Clock, Users, ArrowRight, AlertCircle } from 'lucide-react';
 
 export default function JoinModal({ isOpen, onClose, preselectedService = null, onTokenJoined }) {
   const { user, isAuthenticated } = useAuth();
@@ -97,8 +97,7 @@ export default function JoinModal({ isOpen, onClose, preselectedService = null, 
       left: 0,
       right: 0,
       bottom: 0,
-      background: 'rgba(3, 7, 18, 0.8)',
-      backdropFilter: 'blur(10px)',
+      background: 'rgba(0, 0, 0, 0.7)',
       zIndex: 2000,
       display: 'flex',
       alignItems: 'center',
@@ -109,146 +108,102 @@ export default function JoinModal({ isOpen, onClose, preselectedService = null, 
         className="glass-panel" 
         style={{
           width: '100%',
-          maxWidth: '520px',
-          background: 'rgba(15, 23, 42, 0.95)',
-          border: '1px solid rgba(59, 130, 246, 0.3)',
-          borderRadius: '20px',
-          padding: '32px',
-          boxShadow: '0 25px 60px rgba(0,0,0,0.7), 0 0 40px rgba(59, 130, 246, 0.2)',
+          maxWidth: '440px',
+          background: '#0e121b',
+          border: '1px solid var(--border-medium)',
+          borderRadius: '12px',
+          padding: '24px',
           position: 'relative'
         }}
       >
-        {/* Close Button */}
         <button
           onClick={onClose}
           style={{
             position: 'absolute',
-            top: '20px',
-            right: '20px',
-            background: 'rgba(255, 255, 255, 0.05)',
+            top: '16px',
+            right: '16px',
+            background: 'transparent',
             border: 'none',
-            borderRadius: '50%',
-            width: '36px',
-            height: '36px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'var(--text-muted)',
+            color: 'var(--text-tertiary)',
             cursor: 'pointer'
           }}
         >
           <X size={18} />
         </button>
 
-        {/* Modal Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-          <div style={{
-            width: '44px',
-            height: '44px',
-            borderRadius: '12px',
-            background: 'var(--grad-primary)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 0 20px rgba(59, 130, 246, 0.4)'
-          }}>
-            <Sparkles size={22} color="#ffffff" />
-          </div>
-          <div>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#ffffff' }}>
-              Join Digital Queue
-            </h2>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              Instant wait-time prediction & live telemetry token
-            </p>
-          </div>
+        <div style={{ marginBottom: '18px' }}>
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#ffffff' }}>
+            Enter Queue
+          </h2>
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+            Select a department desk to receive a digital pass.
+          </p>
         </div>
 
         {error && (
           <div style={{
-            background: 'rgba(239, 68, 68, 0.15)',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
-            borderRadius: '10px',
-            padding: '12px 16px',
-            color: '#fca5a5',
-            fontSize: '0.85rem',
-            marginBottom: '20px',
+            background: 'var(--status-danger-bg)',
+            border: '1px solid var(--status-danger-border)',
+            borderRadius: '6px',
+            padding: '8px 12px',
+            color: '#f87171',
+            fontSize: '0.82rem',
+            marginBottom: '16px',
             display: 'flex',
             alignItems: 'center',
-            gap: '10px'
+            gap: '8px'
           }}>
-            <AlertCircle size={16} />
+            <AlertCircle size={14} />
             <span>{error}</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
-          {/* Service Selector */}
-          <div style={{ marginBottom: '18px' }}>
-            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>
-              Department / Service Desk
-            </label>
+          {/* Department Select */}
+          <div style={{ marginBottom: '14px' }}>
+            <label className="form-label">Department Window</label>
             <select
               value={selectedServiceId}
               onChange={(e) => setSelectedServiceId(e.target.value)}
               className="form-input"
-              style={{
-                width: '100%',
-                padding: '12px 14px',
-                background: 'rgba(15, 23, 42, 0.9)',
-                color: '#ffffff',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: '10px',
-                fontSize: '0.92rem',
-                cursor: 'pointer'
-              }}
+              style={{ fontSize: '0.86rem' }}
             >
               {services.map((s) => (
-                <option key={s.service_id} value={s.service_id} style={{ background: '#0f172a' }}>
+                <option key={s.service_id} value={s.service_id}>
                   {s.service_name} ({s.service_code})
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Telemetry Preview for Selected Service */}
+          {/* Quick preview info */}
           {currentService && (
             <div style={{
-              background: 'rgba(0, 0, 0, 0.35)',
-              border: '1px solid rgba(255, 255, 255, 0.06)',
-              borderRadius: '12px',
-              padding: '14px 16px',
-              marginBottom: '20px',
+              background: 'rgba(255, 255, 255, 0.02)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: '6px',
+              padding: '10px 14px',
+              marginBottom: '16px',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between'
+              justifyContent: 'space-between',
+              fontSize: '0.8rem'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Users size={18} color="#fbbf24" />
-                <div>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', textTransform: 'uppercase' }}>Waiting Ahead</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fbbf24' }}>
-                    {currentService.current_queue_length ?? 0} people
-                  </div>
-                </div>
+              <div>
+                <span style={{ color: 'var(--text-tertiary)' }}>Waiting ahead: </span>
+                <strong style={{ color: '#ffffff', fontFamily: 'var(--font-mono)' }}>{currentService.current_queue_length ?? 0}</strong>
               </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', textAlign: 'right' }}>
-                <div>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', textTransform: 'uppercase' }}>Predicted Wait</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#60a5fa' }}>
-                    ~{currentService.estimated_wait_time ?? 5} mins
-                  </div>
-                </div>
-                <Clock size={18} color="#60a5fa" />
+              <div>
+                <span style={{ color: 'var(--text-tertiary)' }}>Est. wait: </span>
+                <strong style={{ color: '#60a5fa', fontFamily: 'var(--font-mono)' }}>~{currentService.estimated_wait_time ?? 5}m</strong>
               </div>
             </div>
           )}
 
-          {/* Name Field (if not authenticated) */}
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>
-              Your Full Name {isAuthenticated ? '(Logged in)' : '*'}
+          {/* Name */}
+          <div style={{ marginBottom: '14px' }}>
+            <label className="form-label">
+              Your Name {isAuthenticated ? '(Logged in)' : '*'}
             </label>
             <input
               type="text"
@@ -258,56 +213,29 @@ export default function JoinModal({ isOpen, onClose, preselectedService = null, 
               required={!isAuthenticated}
               disabled={isAuthenticated}
               className="form-input"
-              style={{
-                width: '100%',
-                padding: '12px 14px',
-                background: isAuthenticated ? 'rgba(255, 255, 255, 0.04)' : 'rgba(15, 23, 42, 0.9)',
-                color: '#ffffff',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: '10px',
-                fontSize: '0.92rem'
-              }}
+              style={{ fontSize: '0.86rem' }}
             />
           </div>
 
-          {/* Phone Field for SMS / WhatsApp Notification */}
-          <div style={{ marginBottom: '24px' }}>
-            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>
-              Mobile Number (Optional for SMS / Alert telemetry)
-            </label>
+          {/* Phone */}
+          <div style={{ marginBottom: '20px' }}>
+            <label className="form-label">Mobile Number (Optional)</label>
             <input
               type="tel"
-              placeholder="+1 (555) 000-0000"
+              placeholder="+1 555-0199"
               value={guestPhone}
               onChange={(e) => setGuestPhone(e.target.value)}
               className="form-input"
-              style={{
-                width: '100%',
-                padding: '12px 14px',
-                background: 'rgba(15, 23, 42, 0.9)',
-                color: '#ffffff',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: '10px',
-                fontSize: '0.92rem'
-              }}
+              style={{ fontSize: '0.86rem' }}
             />
           </div>
 
-          {/* Action Buttons */}
-          <div style={{ display: 'flex', gap: '12px' }}>
+          <div style={{ display: 'flex', gap: '8px' }}>
             <button
               type="button"
               onClick={onClose}
-              style={{
-                flex: 1,
-                padding: '12px',
-                borderRadius: '10px',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                color: 'var(--text-muted)',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
+              className="btn-secondary"
+              style={{ flex: 1, padding: '8px', fontSize: '0.86rem' }}
             >
               Cancel
             </button>
@@ -315,16 +243,9 @@ export default function JoinModal({ isOpen, onClose, preselectedService = null, 
               type="submit"
               disabled={loading}
               className="btn-primary"
-              style={{
-                flex: 2,
-                padding: '12px',
-                borderRadius: '10px',
-                fontWeight: 700,
-                fontSize: '0.95rem'
-              }}
+              style={{ flex: 2, padding: '8px', fontSize: '0.86rem' }}
             >
-              {loading ? 'Generating Token...' : 'Get Queue Token'}
-              <ArrowRight size={18} />
+              {loading ? 'Creating...' : 'Get Digital Pass'}
             </button>
           </div>
         </form>

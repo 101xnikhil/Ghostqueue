@@ -2,14 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { 
   Clock, 
-  ShieldCheck, 
   ArrowRight, 
-  Sparkles, 
-  CheckCircle2, 
-  Activity, 
-  TrendingUp, 
-  Zap,
-  Building
+  Check
 } from 'lucide-react';
 
 export default function HomePage({ setActivePage, openJoinModal }) {
@@ -20,12 +14,10 @@ export default function HomePage({ setActivePage, openJoinModal }) {
       try {
         const res = await api.getServices();
         if (res.success) {
-          setServices(res.services.slice(0, 4));
+          setServices(res.services);
         }
       } catch (err) {
         console.error('Failed to load services preview:', err);
-      } finally {
-        setLoading(false);
       }
     }
     loadPreview();
@@ -35,170 +27,168 @@ export default function HomePage({ setActivePage, openJoinModal }) {
     <div style={{ paddingBottom: '80px' }}>
       {/* Hero Section */}
       <section style={{
-        position: 'relative',
-        padding: '90px 0 70px 0',
-        textAlign: 'center',
-        background: 'var(--grad-hero)',
+        padding: '70px 0 50px 0',
         borderBottom: '1px solid var(--border-subtle)'
       }}>
-        <div className="container" style={{ maxWidth: '900px' }}>
-          {/* Tag Pill */}
+        <div className="container" style={{ maxWidth: '820px', textAlign: 'center' }}>
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '8px',
-            background: 'rgba(59, 130, 246, 0.12)',
-            border: '1px solid rgba(59, 130, 246, 0.3)',
+            gap: '6px',
+            background: 'rgba(255, 255, 255, 0.04)',
+            border: '1px solid var(--border-subtle)',
             borderRadius: '999px',
-            padding: '6px 16px',
-            fontSize: '0.82rem',
-            fontWeight: 600,
-            color: '#93c5fd',
-            marginBottom: '24px',
-            boxShadow: '0 0 20px rgba(59, 130, 246, 0.2)'
+            padding: '4px 12px',
+            fontSize: '0.78rem',
+            color: 'var(--text-secondary)',
+            marginBottom: '20px'
           }}>
-            <Sparkles size={14} color="#60a5fa" />
-            <span>Smart Queue Management & Waiting-Time Prediction</span>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--status-success)' }} />
+            <span>Digital queue telemetry & estimated wait times</span>
           </div>
 
-          {/* Main Headings */}
           <h1 style={{
-            fontSize: 'clamp(2.4rem, 5vw, 4rem)',
+            fontSize: 'clamp(2.2rem, 4.5vw, 3.4rem)',
             fontWeight: 800,
             lineHeight: 1.15,
             letterSpacing: '-0.03em',
-            marginBottom: '20px',
+            marginBottom: '16px',
             color: '#ffffff'
           }}>
-            Waiting Shouldn't <br />
-            <span style={{
-              background: 'linear-gradient(135deg, #60a5fa 0%, #c084fc 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
-            }}>
-              Waste Your Time.
-            </span>
+            Smart queue management for busy campuses and desks.
           </h1>
 
           <p style={{
-            fontSize: '1.15rem',
-            color: 'var(--text-muted)',
+            fontSize: '1.05rem',
+            color: 'var(--text-secondary)',
             lineHeight: 1.6,
-            maxWidth: '680px',
-            margin: '0 auto 36px auto'
+            maxWidth: '620px',
+            margin: '0 auto 30px auto'
           }}>
-            Join queues digitally, track your position live with millisecond telemetry, and know exactly when it’s your turn. Spend your time doing what matters.
+            Join queues digitally, monitor your position live from your phone, and receive an instant alert when it’s your turn at the window.
           </p>
 
-          {/* Primary Action Buttons */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
             <button
               onClick={() => setActivePage('services')}
               className="btn-primary"
-              style={{ padding: '14px 28px', fontSize: '1rem', borderRadius: '12px' }}
+              style={{ padding: '10px 22px', fontSize: '0.92rem' }}
             >
-              <Zap size={18} />
-              Join a Queue Now
-              <ArrowRight size={18} />
+              <span>Join a Queue</span>
+              <ArrowRight size={16} />
             </button>
 
             <button
               onClick={() => setActivePage('tracking')}
               className="btn-secondary"
-              style={{ padding: '14px 26px', fontSize: '1rem', borderRadius: '12px' }}
+              style={{ padding: '10px 20px', fontSize: '0.92rem' }}
             >
-              <Clock size={18} />
-              Track My Active Token
+              <Clock size={16} />
+              <span>Track Token</span>
             </button>
           </div>
 
-          {/* Trust Highlights */}
+          {/* Simple bullet points */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '30px',
-            marginTop: '48px',
-            color: 'var(--text-dim)',
-            fontSize: '0.85rem',
+            gap: '24px',
+            marginTop: '36px',
+            fontSize: '0.8rem',
+            color: 'var(--text-tertiary)',
             flexWrap: 'wrap'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <CheckCircle2 size={16} color="#34d399" />
-              <span>Zero Physical Line-Ups</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Check size={14} color="var(--status-success)" />
+              <span>Zero physical standing</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <TrendingUp size={16} color="#60a5fa" />
-              <span>Predictive Wait Telemetry</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Check size={14} color="var(--status-success)" />
+              <span>Accurate wait predictions</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <ShieldCheck size={16} color="#a78bfa" />
-              <span>PostgreSQL Concurrency-Locked</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Check size={14} color="var(--status-success)" />
+              <span>Live desk audio chime</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Live Campus Services Spotlight */}
-      <section className="container" style={{ marginTop: '70px' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '32px' }}>
+      {/* Service Desks Section */}
+      <section className="container" style={{ marginTop: '50px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
           <div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--accent-blue)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Live System Status
-            </div>
-            <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em', marginTop: '4px' }}>
-              Available Service Counters
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#ffffff', letterSpacing: '-0.02em' }}>
+              Active Service Windows
             </h2>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              Select a desk below to request a digital token and check wait times.
+            </p>
           </div>
+
           <button
             onClick={() => setActivePage('services')}
             className="btn-secondary"
-            style={{ fontSize: '0.85rem', padding: '8px 16px' }}
+            style={{ fontSize: '0.8rem', padding: '6px 12px' }}
           >
-            View All Services <ArrowRight size={14} />
+            <span>View Catalog</span>
+            <ArrowRight size={14} />
           </button>
         </div>
 
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: '20px'
+          gap: '16px'
         }}>
-          {services.map((svc) => (
+          {services.slice(0, 4).map((svc) => (
             <div
               key={svc.service_id}
               className="glass-panel"
               style={{
-                padding: '24px',
+                padding: '20px',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between'
               }}
             >
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                   <span style={{
-                    fontSize: '0.75rem',
+                    fontSize: '0.72rem',
+                    fontFamily: 'var(--font-mono)',
                     fontWeight: 700,
-                    letterSpacing: '0.06em',
-                    padding: '3px 8px',
-                    borderRadius: '6px',
-                    background: 'rgba(59, 130, 246, 0.15)',
-                    color: '#60a5fa',
-                    border: '1px solid rgba(59, 130, 246, 0.3)'
+                    padding: '2px 6px',
+                    borderRadius: '4px',
+                    background: 'var(--accent-light)',
+                    color: '#93c5fd',
+                    border: '1px solid var(--accent-border)'
                   }}>
                     {svc.service_code}
                   </span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#34d399' }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} />
-                    Active ({svc.active_counters_count} windows)
-                  </div>
+
+                  <span style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    fontSize: '0.75rem',
+                    color: svc.is_active ? 'var(--status-success)' : 'var(--text-tertiary)'
+                  }}>
+                    <span style={{
+                      width: '6px',
+                      height: '6px',
+                      borderRadius: '50%',
+                      background: svc.is_active ? 'var(--status-success)' : 'var(--border-medium)'
+                    }} />
+                    {svc.is_active ? 'Open' : 'Unavailable'}
+                  </span>
                 </div>
 
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#ffffff', marginBottom: '8px' }}>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#ffffff', marginBottom: '6px' }}>
                   {svc.service_name}
                 </h3>
-                <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', marginBottom: '20px', lineHeight: 1.5, minHeight: '40px' }}>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '18px', minHeight: '38px', lineHeight: 1.45 }}>
                   {svc.description}
                 </p>
               </div>
@@ -208,29 +198,28 @@ export default function HomePage({ setActivePage, openJoinModal }) {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  padding: '12px 14px',
-                  background: 'rgba(0, 0, 0, 0.25)',
-                  borderRadius: '10px',
-                  marginBottom: '16px'
+                  padding: '10px 12px',
+                  background: 'rgba(255, 255, 255, 0.02)',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border-subtle)',
+                  marginBottom: '14px',
+                  fontSize: '0.82rem'
                 }}>
                   <div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', textTransform: 'uppercase' }}>Waiting</div>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fbbf24' }}>
-                      {svc.current_queue_length} people
-                    </div>
+                    <span style={{ color: 'var(--text-tertiary)', fontSize: '0.72rem', textTransform: 'uppercase' }}>In Queue:</span>
+                    <strong style={{ color: '#ffffff', marginLeft: '6px', fontFamily: 'var(--font-mono)' }}>{svc.current_queue_length}</strong>
                   </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', textTransform: 'uppercase' }}>Est. Wait</div>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#60a5fa' }}>
-                      ~{svc.estimated_wait_time} mins
-                    </div>
+                  <div>
+                    <span style={{ color: 'var(--text-tertiary)', fontSize: '0.72rem', textTransform: 'uppercase' }}>Est. Wait:</span>
+                    <strong style={{ color: '#ffffff', marginLeft: '6px', fontFamily: 'var(--font-mono)' }}>~{svc.estimated_wait_time}m</strong>
                   </div>
                 </div>
 
                 <button
                   onClick={() => openJoinModal(svc)}
+                  disabled={!svc.is_active}
                   className="btn-primary"
-                  style={{ width: '100%', fontSize: '0.9rem' }}
+                  style={{ width: '100%', padding: '8px', fontSize: '0.84rem' }}
                 >
                   Join Queue
                 </button>
@@ -240,117 +229,62 @@ export default function HomePage({ setActivePage, openJoinModal }) {
         </div>
       </section>
 
-      {/* How It Works Section */}
-      <section className="container" style={{ marginTop: '90px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-          <div style={{ fontSize: '0.8rem', color: 'var(--accent-violet)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Frictionless Flow
-          </div>
-          <h2 style={{ fontSize: '2rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em', marginTop: '6px' }}>
-            How GhostQueue Works
+      {/* How it Works - Minimal 4-step Grid */}
+      <section className="container" style={{ marginTop: '70px' }}>
+        <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '40px', marginBottom: '28px' }}>
+          <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: '#ffffff', letterSpacing: '-0.02em', marginBottom: '4px' }}>
+            How it works
           </h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', maxWidth: '540px', margin: '8px auto 0 auto' }}>
-            Eliminate chaotic queues in high-traffic administrative buildings in 4 effortless steps.
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+            Four straightforward steps to streamline lobby waiting.
           </p>
         </div>
 
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: '24px'
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gap: '16px'
         }}>
           {[
             {
               step: '01',
-              title: 'Choose Service',
-              desc: 'Select the department or office you need assistance from on your phone or workstation.',
-              icon: Building,
-              color: '#3b82f6'
+              title: 'Select desk',
+              desc: 'Choose your desired service counter on your phone or laptop.'
             },
             {
               step: '02',
-              title: 'Instant Digital Token',
-              desc: 'Get an atomically sequenced token number guaranteed by PostgreSQL concurrency locks.',
-              icon: Zap,
-              color: '#8b5cf6'
+              title: 'Receive token',
+              desc: 'Get an atomically assigned digital pass with an initial wait estimate.'
             },
             {
               step: '03',
-              title: 'Live Telemetry',
-              desc: 'Relax elsewhere while watching your exact queue position and data-driven wait time prediction update live.',
-              icon: Activity,
-              color: '#06b6d4'
+              title: 'Wait freely',
+              desc: 'Track your live position and predicted arrival time without staying in line.'
             },
             {
               step: '04',
-              title: 'Walk to Window',
-              desc: 'Get a chime notification when only 2 people are ahead, then proceed straight to your assigned counter.',
-              icon: CheckCircle2,
-              color: '#10b981'
+              title: 'Proceed to window',
+              desc: 'Receive a live chime and on-screen call when your window is ready.'
             }
-          ].map((item, idx) => (
+          ].map((item) => (
             <div
-              key={idx}
+              key={item.step}
               className="glass-panel"
-              style={{ padding: '28px', position: 'relative' }}
+              style={{ padding: '20px' }}
             >
-              <div style={{
-                fontSize: '2rem',
-                fontWeight: 900,
-                color: 'rgba(255, 255, 255, 0.08)',
-                position: 'absolute',
-                top: '16px',
-                right: '20px',
-                fontFamily: 'var(--font-mono)'
-              }}>
+              <div style={{ fontSize: '0.8rem', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--text-tertiary)', marginBottom: '8px' }}>
                 {item.step}
               </div>
-
-              <div style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: '12px',
-                background: `rgba(${item.color === '#3b82f6' ? '59, 130, 246' : item.color === '#8b5cf6' ? '139, 92, 246' : item.color === '#06b6d4' ? '6, 182, 212' : '16, 185, 129'}, 0.15)`,
-                border: `1px solid ${item.color}40`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '18px'
-              }}>
-                <item.icon size={22} color={item.color} />
-              </div>
-
-              <h4 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#ffffff', marginBottom: '8px' }}>
+              <h3 style={{ fontSize: '0.98rem', fontWeight: 600, color: '#ffffff', marginBottom: '6px' }}>
                 {item.title}
-              </h4>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
+              </h3>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 {item.desc}
               </p>
             </div>
           ))}
         </div>
       </section>
-
-      {/* Footer */}
-      <footer style={{
-        marginTop: '100px',
-        borderTop: '1px solid var(--border-subtle)',
-        padding: '40px 0',
-        textAlign: 'center',
-        color: 'var(--text-dim)',
-        fontSize: '0.85rem'
-      }}>
-        <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Zap size={16} color="var(--accent-blue)" />
-            <span style={{ fontWeight: 700, color: '#ffffff' }}>GhostQueue</span>
-            <span>— Smart Queue Management & Waiting-Time Prediction System</span>
-          </div>
-          <div>
-            Apex Engineering Institute • B.Tech CSE Mini-Project
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

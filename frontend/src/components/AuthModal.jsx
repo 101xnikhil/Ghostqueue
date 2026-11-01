@@ -1,15 +1,31 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { X, Sparkles, User, Lock, Mail, Phone, ShieldCheck, ArrowRight } from 'lucide-react';
+import { 
+  X, 
+  User, 
+  Lock, 
+  Mail, 
+  Phone, 
+  ArrowRight, 
+  Eye, 
+  EyeOff, 
+  Shield, 
+  Tv, 
+  Ticket, 
+  Zap,
+  ShieldCheck
+} from 'lucide-react';
 
-export default function AuthModal({ isOpen, onClose, initialTab = 'guest' }) {
+export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
   const { login, register, guestLogin, switchDemoRole } = useAuth();
-  const [tab, setTab] = useState(initialTab); // 'guest', 'login', 'register'
+  const [tab, setTab] = useState(initialTab); // 'login', 'register', 'guest'
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -22,19 +38,28 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'guest' }) {
     setLoading(true);
 
     try {
-      if (tab === 'guest') {
-        if (!name.trim()) throw new Error('Please enter your name.');
-        await guestLogin(name, phone);
-      } else if (tab === 'login') {
-        if (!email.trim() || !password) throw new Error('Please enter email and password.');
-        await login(email, password);
+      if (tab === 'login') {
+        if (!email.trim() || !password) {
+          throw new Error('Please enter your email and password.');
+        }
+        await login(email.trim(), password);
       } else if (tab === 'register') {
-        if (!name.trim() || !email.trim() || !password) throw new Error('Name, email and password are required.');
-        await register({ name, email, password, phone });
+        if (!name.trim() || !email.trim() || !password) {
+          throw new Error('Name, email, and password are required.');
+        }
+        if (password.length < 6) {
+          throw new Error('Password must be at least 6 characters long.');
+        }
+        await register({ name: name.trim(), email: email.trim(), password, phone: phone.trim() });
+      } else if (tab === 'guest') {
+        if (!name.trim()) {
+          throw new Error('Please enter your full name.');
+        }
+        await guestLogin(name.trim(), phone.trim());
       }
       onClose();
     } catch (err) {
-      setError(err.message || 'Operation failed. Please try again.');
+      setError(err.message || 'Authentication failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
@@ -57,150 +82,159 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'guest' }) {
     <div style={{
       position: 'fixed',
       inset: 0,
-      background: 'rgba(5, 8, 16, 0.85)',
-      backdropFilter: 'blur(12px)',
+      background: 'rgba(4, 6, 11, 0.82)',
+      backdropFilter: 'blur(8px)',
+      WebkitBackdropFilter: 'blur(8px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       zIndex: 10000,
       padding: '16px'
     }}>
-      <div className="glass-panel" style={{
-        maxWidth: '480px',
+      <div style={{
+        maxWidth: '420px',
         width: '100%',
-        padding: '28px',
+        background: '#0d111a',
+        border: '1px solid rgba(255, 255, 255, 0.12)',
+        borderRadius: '16px',
+        padding: '30px 28px',
         position: 'relative',
-        boxShadow: '0 20px 50px rgba(0,0,0,0.7)',
-        border: '1px solid rgba(255, 255, 255, 0.12)'
+        boxShadow: '0 24px 64px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.04)'
       }}>
         {/* Close Button */}
         <button
           onClick={onClose}
           style={{
             position: 'absolute',
-            top: '20px',
-            right: '20px',
-            background: 'rgba(255,255,255,0.06)',
-            border: 'none',
-            borderRadius: '50%',
-            width: '32px',
-            height: '32px',
+            top: '18px',
+            right: '18px',
+            background: 'rgba(255, 255, 255, 0.04)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            borderRadius: '8px',
+            width: '30px',
+            height: '30px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'var(--text-muted)',
-            cursor: 'pointer'
+            color: 'var(--text-tertiary)',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease'
           }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = '#ffffff'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-tertiary)'; }}
         >
-          <X size={18} />
+          <X size={15} />
         </button>
 
-        {/* Header */}
+        {/* Brand Header */}
         <div style={{ textAlign: 'center', marginBottom: '22px' }}>
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: '48px',
-            height: '48px',
-            borderRadius: '14px',
-            background: 'var(--grad-primary)',
-            marginBottom: '12px',
-            boxShadow: '0 0 20px rgba(59, 130, 246, 0.4)'
+            width: '40px',
+            height: '40px',
+            borderRadius: '10px',
+            background: '#ffffff',
+            color: '#080a0f',
+            marginBottom: '14px',
+            boxShadow: '0 4px 14px rgba(0,0,0,0.4)'
           }}>
-            <Sparkles size={24} color="#ffffff" />
+            <Zap size={20} strokeWidth={2.5} fill="#080a0f" />
           </div>
-          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.02em' }}>
-            Welcome to GhostQueue
+
+          <h2 style={{
+            fontSize: '1.35rem',
+            fontWeight: 800,
+            color: '#ffffff',
+            letterSpacing: '-0.025em',
+            lineHeight: 1.2
+          }}>
+            {tab === 'login' && 'Sign in to GhostQueue'}
+            {tab === 'register' && 'Create your account'}
+            {tab === 'guest' && 'Quick Guest Ticket'}
           </h2>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-            Digital queueing, real-time telemetry & waiting prediction
+
+          <p style={{
+            fontSize: '0.84rem',
+            color: 'var(--text-secondary)',
+            marginTop: '6px'
+          }}>
+            {tab === 'login' && 'Enter your organization credentials or test profile'}
+            {tab === 'register' && 'Register to manage queue tokens and appointments'}
+            {tab === 'guest' && 'Take a place in line instantly without an account'}
           </p>
         </div>
 
-        {/* Tab Navigation */}
+        {/* Segmented Tab Control */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr 1fr',
-          gap: '6px',
-          background: 'rgba(0,0,0,0.25)',
-          padding: '4px',
-          borderRadius: '10px',
-          marginBottom: '20px'
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: '2px',
+          background: 'rgba(0, 0, 0, 0.4)',
+          padding: '3px',
+          borderRadius: '8px',
+          marginBottom: '20px',
+          border: '1px solid var(--border-subtle)'
         }}>
-          <button
-            type="button"
-            onClick={() => { setTab('guest'); setError(''); }}
-            style={{
-              background: tab === 'guest' ? 'rgba(59, 130, 246, 0.25)' : 'transparent',
-              border: tab === 'guest' ? '1px solid rgba(59, 130, 246, 0.4)' : 'none',
-              color: tab === 'guest' ? '#60a5fa' : 'var(--text-muted)',
-              padding: '8px 4px',
-              borderRadius: '8px',
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
-          >
-            Guest Access
-          </button>
-          <button
-            type="button"
-            onClick={() => { setTab('login'); setError(''); }}
-            style={{
-              background: tab === 'login' ? 'rgba(59, 130, 246, 0.25)' : 'transparent',
-              border: tab === 'login' ? '1px solid rgba(59, 130, 246, 0.4)' : 'none',
-              color: tab === 'login' ? '#60a5fa' : 'var(--text-muted)',
-              padding: '8px 4px',
-              borderRadius: '8px',
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
-          >
-            Sign In
-          </button>
-          <button
-            type="button"
-            onClick={() => { setTab('register'); setError(''); }}
-            style={{
-              background: tab === 'register' ? 'rgba(59, 130, 246, 0.25)' : 'transparent',
-              border: tab === 'register' ? '1px solid rgba(59, 130, 246, 0.4)' : 'none',
-              color: tab === 'register' ? '#60a5fa' : 'var(--text-muted)',
-              padding: '8px 4px',
-              borderRadius: '8px',
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
-          >
-            Register
-          </button>
+          {[
+            { id: 'login', label: 'Sign In' },
+            { id: 'register', label: 'Register' },
+            { id: 'guest', label: 'Guest Pass' }
+          ].map((t) => {
+            const isActive = tab === t.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => { setTab(t.id); setError(''); }}
+                style={{
+                  background: isActive ? '#1e2538' : 'transparent',
+                  color: isActive ? '#ffffff' : 'var(--text-secondary)',
+                  border: isActive ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid transparent',
+                  padding: '7px 4px',
+                  borderRadius: '6px',
+                  fontSize: '0.8rem',
+                  fontWeight: isActive ? 600 : 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                {t.label}
+              </button>
+            );
+          })}
         </div>
 
+        {/* Error Alert */}
         {error && (
           <div style={{
-            background: 'rgba(244, 63, 94, 0.15)',
-            border: '1px solid rgba(244, 63, 94, 0.3)',
-            color: '#fda4af',
-            padding: '10px 14px',
+            background: 'var(--status-danger-bg)',
+            border: '1px solid var(--status-danger-border)',
             borderRadius: '8px',
-            fontSize: '0.85rem',
-            marginBottom: '16px'
+            padding: '10px 14px',
+            color: '#f87171',
+            fontSize: '0.82rem',
+            marginBottom: '18px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
           }}>
-            {error}
+            <span style={{ fontWeight: 600 }}>Error:</span>
+            <span>{error}</span>
           </div>
         )}
 
+        {/* Auth Form */}
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {(tab === 'guest' || tab === 'register') && (
+          {/* Full Name for Register or Guest */}
+          {(tab === 'register' || tab === 'guest') && (
             <div>
-              <label className="form-label">Full Name</label>
+              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                Full Name
+              </label>
               <div style={{ position: 'relative' }}>
-                <User size={16} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '13px' }} />
+                <User size={15} color="var(--text-tertiary)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
                 <input
                   type="text"
                   required
@@ -208,17 +242,20 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'guest' }) {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="form-input"
-                  style={{ paddingLeft: '38px' }}
+                  style={{ paddingLeft: '36px', fontSize: '0.86rem' }}
                 />
               </div>
             </div>
           )}
 
+          {/* Email for Login or Register */}
           {(tab === 'login' || tab === 'register') && (
             <div>
-              <label className="form-label">Email Address</label>
+              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                Email Address
+              </label>
               <div style={{ position: 'relative' }}>
-                <Mail size={16} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '13px' }} />
+                <Mail size={15} color="var(--text-tertiary)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
                 <input
                   type="email"
                   required
@@ -226,117 +263,230 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'guest' }) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="form-input"
-                  style={{ paddingLeft: '38px' }}
+                  style={{ paddingLeft: '36px', fontSize: '0.86rem' }}
                 />
               </div>
             </div>
           )}
 
+          {/* Password for Login or Register */}
           {(tab === 'login' || tab === 'register') && (
             <div>
-              <label className="form-label">Password</label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                  Password
+                </label>
+                {tab === 'login' && (
+                  <span
+                    onClick={() => alert('For this demo, default password is "admin123", "operator123", or "visitor123".')}
+                    style={{ fontSize: '0.74rem', color: '#60a5fa', cursor: 'pointer' }}
+                  >
+                    Forgot password?
+                  </span>
+                )}
+              </div>
               <div style={{ position: 'relative' }}>
-                <Lock size={16} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '13px' }} />
+                <Lock size={15} color="var(--text-tertiary)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   required
-                  placeholder="••••••••"
+                  placeholder="••••••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="form-input"
-                  style={{ paddingLeft: '38px' }}
+                  style={{ paddingLeft: '36px', paddingRight: '38px', fontSize: '0.86rem' }}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: '10px',
+                    top: '10px',
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-tertiary)',
+                    cursor: 'pointer',
+                    padding: '2px'
+                  }}
+                >
+                  {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
               </div>
             </div>
           )}
 
+          {/* Phone Number for Guest or Register */}
           {(tab === 'guest' || tab === 'register') && (
             <div>
-              <label className="form-label">Phone Number (Optional for SMS / updates)</label>
+              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                Mobile Number {tab === 'guest' ? '(Optional for SMS alert)' : '(Optional)'}
+              </label>
               <div style={{ position: 'relative' }}>
-                <Phone size={16} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '13px' }} />
+                <Phone size={15} color="var(--text-tertiary)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
                 <input
                   type="tel"
                   placeholder="+1 (555) 000-0000"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   className="form-input"
-                  style={{ paddingLeft: '38px' }}
+                  style={{ paddingLeft: '36px', fontSize: '0.86rem' }}
                 />
               </div>
             </div>
           )}
 
+          {/* Remember Me checkbox on Login */}
+          {tab === 'login' && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
+              <input
+                type="checkbox"
+                id="remember"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                style={{ accentColor: 'var(--accent)', cursor: 'pointer' }}
+              />
+              <label htmlFor="remember" style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                Keep me signed in on this device
+              </label>
+            </div>
+          )}
+
+          {/* Primary Action Button */}
           <button
             type="submit"
             disabled={loading}
             className="btn-primary"
-            style={{ width: '100%', marginTop: '6px', height: '44px' }}
+            style={{
+              width: '100%',
+              padding: '11px',
+              fontSize: '0.9rem',
+              fontWeight: 600,
+              marginTop: '4px'
+            }}
           >
-            {loading ? 'Processing...' : (
+            {loading ? (
+              <span>Authenticating...</span>
+            ) : (
               <>
-                {tab === 'guest' ? 'Continue as Guest' : tab === 'login' ? 'Sign In to Account' : 'Create Free Account'}
-                <ArrowRight size={16} />
+                <span>
+                  {tab === 'login' && 'Sign In to Workspace'}
+                  {tab === 'register' && 'Create Account'}
+                  {tab === 'guest' && 'Enter Digital Queue'}
+                </span>
+                <ArrowRight size={15} />
               </>
             )}
           </button>
         </form>
 
-        {/* 1-Click Demo Profiles */}
+        {/* Clean Demo Profiles Section */}
         <div style={{ marginTop: '22px', borderTop: '1px solid var(--border-subtle)', paddingTop: '16px' }}>
-          <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-dim)', textAlign: 'center', marginBottom: '10px', fontWeight: 600 }}>
-            Instant Evaluation Demo Roles
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+          <div style={{
+            fontSize: '0.72rem',
+            color: 'var(--text-tertiary)',
+            textAlign: 'center',
+            marginBottom: '10px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.04em',
+            fontWeight: 600
+          }}>
+            One-Click Evaluation Accounts
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
             <button
               type="button"
               onClick={() => handleQuickDemo('admin')}
               style={{
-                background: 'rgba(139, 92, 246, 0.12)',
-                border: '1px solid rgba(139, 92, 246, 0.3)',
-                color: '#c4b5fd',
-                padding: '8px 4px',
+                background: 'rgba(255, 255, 255, 0.03)',
+                border: '1px solid var(--border-subtle)',
+                color: '#ffffff',
+                padding: '8px 6px',
                 borderRadius: '8px',
                 fontSize: '0.78rem',
                 fontWeight: 600,
-                cursor: 'pointer'
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '4px',
+                transition: 'all 0.15s ease'
               }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'; e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'; }}
             >
-              👑 Admin
+              <Shield size={14} color="#60a5fa" />
+              <span>Admin</span>
+              <span style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', fontWeight: 400 }}>Full access</span>
             </button>
+
             <button
               type="button"
               onClick={() => handleQuickDemo('operator')}
               style={{
-                background: 'rgba(59, 130, 246, 0.12)',
-                border: '1px solid rgba(59, 130, 246, 0.3)',
-                color: '#93c5fd',
-                padding: '8px 4px',
+                background: 'rgba(255, 255, 255, 0.03)',
+                border: '1px solid var(--border-subtle)',
+                color: '#ffffff',
+                padding: '8px 6px',
                 borderRadius: '8px',
                 fontSize: '0.78rem',
                 fontWeight: 600,
-                cursor: 'pointer'
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '4px',
+                transition: 'all 0.15s ease'
               }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'; e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'; }}
             >
-              💼 Operator 1
+              <Tv size={14} color="#34d399" />
+              <span>Operator</span>
+              <span style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', fontWeight: 400 }}>Desk window</span>
             </button>
+
             <button
               type="button"
               onClick={() => handleQuickDemo('visitor')}
               style={{
-                background: 'rgba(16, 185, 129, 0.12)',
-                border: '1px solid rgba(16, 185, 129, 0.3)',
-                color: '#6ee7b7',
-                padding: '8px 4px',
+                background: 'rgba(255, 255, 255, 0.03)',
+                border: '1px solid var(--border-subtle)',
+                color: '#ffffff',
+                padding: '8px 6px',
                 borderRadius: '8px',
                 fontSize: '0.78rem',
                 fontWeight: 600,
-                cursor: 'pointer'
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '4px',
+                transition: 'all 0.15s ease'
               }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'; e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'; }}
             >
-              🎟️ Visitor
+              <Ticket size={14} color="#f59e0b" />
+              <span>Visitor</span>
+              <span style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', fontWeight: 400 }}>Queue pass</span>
             </button>
           </div>
+        </div>
+
+        {/* Security / Encryption Micro-Copy */}
+        <div style={{
+          marginTop: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '6px',
+          fontSize: '0.72rem',
+          color: 'var(--text-tertiary)'
+        }}>
+          <ShieldCheck size={13} color="var(--status-success)" />
+          <span>Encrypted JWT Sessions • PostgreSQL Concurrency Safe</span>
         </div>
       </div>
     </div>

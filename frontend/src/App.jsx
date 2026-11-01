@@ -11,7 +11,7 @@ import TrackingPage from './pages/TrackingPage';
 import OperatorPage from './pages/OperatorPage';
 import AdminPage from './pages/AdminPage';
 import DisplayPage from './pages/DisplayPage';
-import { Zap, Radio } from 'lucide-react';
+import { Radio } from 'lucide-react';
 
 function GhostQueueApp() {
   const [activePage, setActivePage] = useState(() => {
@@ -25,8 +25,11 @@ function GhostQueueApp() {
     return params.get('token') || null;
   });
 
-  const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [authModalTab, setAuthModalTab] = useState('guest');
+  const [authModalOpen, setAuthModalOpen] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('page') === 'login' || params.get('page') === 'auth';
+  });
+  const [authModalTab, setAuthModalTab] = useState('login');
   const [joinModalOpen, setJoinModalOpen] = useState(false);
   const [preselectedService, setPreselectedService] = useState(null);
 
@@ -134,53 +137,43 @@ function GhostQueueApp() {
 
       {/* Footer */}
       <footer style={{
-        background: 'rgba(5, 8, 16, 0.95)',
+        background: '#080a0f',
         borderTop: '1px solid var(--border-subtle)',
-        padding: '36px 24px',
-        color: 'var(--text-dim)',
-        fontSize: '0.86rem'
+        padding: '24px',
+        color: 'var(--text-tertiary)',
+        fontSize: '0.8rem'
       }}>
         <div className="container" style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: '20px'
+          gap: '16px'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{
-              width: '28px',
-              height: '28px',
-              borderRadius: '7px',
-              background: 'var(--grad-primary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Zap size={16} color="#ffffff" />
-            </div>
-            <span style={{ fontWeight: 800, color: '#ffffff' }}>GhostQueue</span>
-            <span>— Smart Queue Management & Waiting-Time Prediction</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontWeight: 600, color: '#ffffff' }}>GhostQueue</span>
+            <span>·</span>
+            <span>Real-time queue & desk telemetry</span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <button
               onClick={() => setActivePage('display')}
               style={{
                 background: 'transparent',
                 border: 'none',
-                color: 'var(--accent-blue)',
+                color: 'var(--text-secondary)',
                 cursor: 'pointer',
-                fontWeight: 600,
-                fontSize: '0.86rem',
+                fontSize: '0.8rem',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px'
+                gap: '5px'
               }}
             >
-              <Radio size={14} /> Launch TV Wallboard
+              <Radio size={13} />
+              <span>TV Wallboard Mode</span>
             </button>
-            <span>v2.0 Production Ready</span>
+            <span>v2.0</span>
           </div>
         </div>
       </footer>
