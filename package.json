@@ -1,0 +1,18 @@
+{
+  "name": "ghostqueue",
+  "version": "1.0.0",
+  "description": "**Smart Queue Management & Waiting-Time Prediction Platform**",
+  "homepage": "https://github.com/101xnikhil/Ghostqueue#readme",
+  "bugs": {
+    "url": "https://github.com/101xnikhil/Ghostqueue/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/101xnikhil/Ghostqueue.git"
+  },
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
